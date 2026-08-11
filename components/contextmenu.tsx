@@ -83,69 +83,71 @@ export const ContextMenu = (props: ContextMenuProps) => {
   } = props
   const { isOpen, onOpen, onClose } = useDisclosure()
   const copyRef = useRef<any>()
+  const localRef = useRef<HTMLDivElement>(null)
   return (
-    <>
-      <Menu defaultIsOpen closeOnBlur={false} onClose={() => menuClose()}>
-        <MenuList
-          zIndex="overlay"
-          bgColor="white"
-          color="black"
-          //borderColor="gray.500"
-          position="absolute"
-          left={coordinates.left}
-          top={coordinates.top}
-          right={coordinates.right}
-          bottom={coordinates.bottom}
-          fontSize="xs"
-          boxShadow="xl"
-        >
-          {typeof target !== 'string' ? (
-            <>
-              {target && (
-                <>
-                  <Heading size="xs" isTruncated px={3} py={1}>
-                    {target.title}
-                  </Heading>
-                  <MenuDivider borderColor="gray.500" />
-                </>
-              )}
-              {scope.nodeIds.length !== 0 && (
-                <>
-                  <MenuItem onClick={() => handleLocal(target!, 'add')} icon={<PlusSquareIcon />}>
-                    Expand local graph at node
-                  </MenuItem>
+    <div ref={localRef}>
+      <>
+        <Menu defaultIsOpen closeOnBlur={false} onClose={() => menuClose()}>
+          <MenuList
+            zIndex="overlay"
+            bgColor="white"
+            color="black"
+            //borderColor="gray.500"
+            position="absolute"
+            left={coordinates.left}
+            top={coordinates.top}
+            right={coordinates.right}
+            bottom={coordinates.bottom}
+            fontSize="xs"
+            boxShadow="xl"
+          >
+            {typeof target !== 'string' ? (
+              <>
+                {target && (
+                  <>
+                    <Heading size="xs" isTruncated px={3} py={1}>
+                      {target.title}
+                    </Heading>
+                    <MenuDivider borderColor="gray.500" />
+                  </>
+                )}
+                {scope.nodeIds.length !== 0 && (
+                  <>
+                    <MenuItem onClick={() => handleLocal(target!, 'add')} icon={<PlusSquareIcon />}>
+                      Expand local graph at node
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => handleLocal(target!, 'replace')}
+                      icon={<BiNetworkChart />}
+                    >
+                      Open local graph for this node
+                    </MenuItem>
+                    <MenuItem onClick={() => handleLocal(target!, 'remove')} icon={<MinusIcon />}>
+                      Exclude node from local graph
+                    </MenuItem>
+                  </>
+                )}
+                {!target?.properties?.FILELESS ? (
                   <MenuItem
-                    onClick={() => handleLocal(target!, 'replace')}
-                    icon={<BiNetworkChart />}
+                    icon={<EditIcon />}
+                    onClick={() => openNodeInEmacs(target as OrgRoamNode, webSocket)}
                   >
-                    Open local graph for this node
+                    Open in Emacs
                   </MenuItem>
-                  <MenuItem onClick={() => handleLocal(target!, 'remove')} icon={<MinusIcon />}>
-                    Exclude node from local graph
+                ) : (
+                  <MenuItem icon={<AddIcon />} onClick={() => createNodeInEmacs(target, webSocket)}>
+                    Create node
                   </MenuItem>
-                </>
-              )}
-              {!target?.properties?.FILELESS ? (
-                <MenuItem
-                  icon={<EditIcon />}
-                  onClick={() => openNodeInEmacs(target as OrgRoamNode, webSocket)}
-                >
-                  Open in Emacs
-                </MenuItem>
-              ) : (
-                <MenuItem icon={<AddIcon />} onClick={() => createNodeInEmacs(target, webSocket)}>
-                  Create node
-                </MenuItem>
-              )}
-              {target?.properties?.ROAM_REFS && (
-                <MenuItem icon={<ExternalLinkIcon />}>Open in Zotero</MenuItem>
-              )}
-              {scope.nodeIds.length === 0 && (
-                <MenuItem icon={<BiNetworkChart />} onClick={() => handleLocal(target!, 'replace')}>
-                  Open local graph
-                </MenuItem>
-              )}
-              {/* Doesn't work at the moment
+                )}
+                {target?.properties?.ROAM_REFS && (
+                  <MenuItem icon={<ExternalLinkIcon />}>Open in Zotero</MenuItem>
+                )}
+                {scope.nodeIds.length === 0 && (
+                  <MenuItem icon={<BiNetworkChart />} onClick={() => handleLocal(target!, 'replace')}>
+                    Open local graph
+                  </MenuItem>
+                )}
+                {/* Doesn't work at the moment
                             <MenuItem closeOnSelect={false} closeOnBlur={false}>
                             <Box _hover={{ bg: 'gray.200' }} width="100%">
                                 <Popover
@@ -175,78 +177,83 @@ export const ContextMenu = (props: ContextMenuProps) => {
                             </Box>
                         </MenuItem> */}
 
-              <MenuItem
-                icon={<ViewIcon />}
-                onClick={() => {
-                  setPreviewNode(target)
-                }}
-              >
-                Preview
-              </MenuItem>
-              {target?.level === 0 && (
                 <MenuItem
-                  closeOnSelect={false}
-                  icon={<DeleteIcon color="red.500" />}
-                  color="red.500"
-                  onClick={onOpen}
+                  icon={<ViewIcon />}
+                  onClick={() => {
+                    setPreviewNode(target)
+                  }}
                 >
-                  Permanently delete note
+                  Preview
                 </MenuItem>
-              )}
-            </>
-          ) : (
-            <TagMenu {...{ target, tagColors, filter, setTagColors, setFilter }} />
-          )}
-        </MenuList>
-      </Menu>
-      {typeof target !== 'string' && (
-        <Modal isCentered isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay />
-          <ModalContent zIndex="popover">
-            <ModalHeader>Delete node?</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <VStack spacing={4} display="flex" alignItems="flex-start">
-                <Text>This will permanently delete your note:</Text>
-                <Text fontWeight="bold">{target?.title}</Text>
-                {target?.level !== 0 && (
-                  <Text>
-                    This will only delete the from this heading until but not including the next
-                    node. Your parent file and all other nodes will not be deleted.
-                  </Text>
+                {target?.level === 0 && (
+                  <MenuItem
+                    closeOnSelect={false}
+                    icon={<DeleteIcon color="red.500" />}
+                    color="red.500"
+                    onClick={onOpen}
+                  >
+                    Permanently delete note
+                  </MenuItem>
                 )}
-                <Text>Are you sure you want to do continue?</Text>
-              </VStack>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                mr={3}
-                onClick={() => {
-                  console.log('closing')
-                  onClose()
-                  menuClose()
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="link"
-                colorScheme="red"
-                ml={3}
-                onClick={() => {
-                  console.log('aaaaa')
-                  deleteNodeInEmacs(target!, webSocket)
-                  onClose()
-                  menuClose()
-                }}
-              >
-                Delete node
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      )}
-    </>
+              </>
+            ) : (
+              <TagMenu {...{ target, tagColors, filter, setTagColors, setFilter }} />
+            )}
+          </MenuList>
+        </Menu>
+        {typeof target !== 'string' && (
+          <Modal
+            isCentered
+            isOpen={isOpen}
+            onClose={onClose}
+            portalProps={{ containerRef: localRef }}
+          >
+            <ModalOverlay />
+            <ModalContent zIndex="popover">
+              <ModalHeader>Delete node?</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <VStack spacing={4} display="flex" alignItems="flex-start">
+                  <Text>This will permanently delete your note:</Text>
+                  <Text fontWeight="bold">{target?.title}</Text>
+                  {target?.level !== 0 && (
+                    <Text>
+                      This will only delete the from this heading until but not including the next
+                      node. Your parent file and all other nodes will not be deleted.
+                    </Text>
+                  )}
+                  <Text>Are you sure you want to do continue?</Text>
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  mr={3}
+                  onClick={() => {
+                    console.log('closing')
+                    onClose()
+                    menuClose()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="link"
+                  colorScheme="red"
+                  ml={3}
+                  onClick={() => {
+                    deleteNodeInEmacs(target!, webSocket)
+                    onClose()
+                    menuClose()
+                  }}
+                >
+                  Delete node
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        )}
+      </>
+    </div>
   )
 }
 
