@@ -167,6 +167,18 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
 (defvar org-roam-ui-ws-server nil
   "The websocket server for org-roam-ui.")
 
+
+(defun org-roam-server-start ()
+  "Start Websocket server."
+  (interactive)
+  (setq org-roam-ui-ws-server
+    (websocket-server
+      35903
+      :host 'local
+      :on-open #'org-roam-ui--ws-on-open
+      :on-message #'org-roam-ui--ws-on-message
+      :on-close #'org-roam-ui--ws-on-close)))
+
 ;;;###autoload
 (define-minor-mode
   org-roam-ui-mode
@@ -177,26 +189,20 @@ This serves the web-build and API over HTTP."
   :group 'org-roam-ui
   :init-value nil
   (cond
-   (org-roam-ui-mode
+    (org-roam-ui-mode
    ;;; check if the default keywords actually exist on `orb-preformat-keywords'
    ;;; else add them
-    (setq-local httpd-port org-roam-ui-port)
-    (setq httpd-root org-roam-ui-app-build-dir)
-    (httpd-start)
-    (setq org-roam-ui-ws-server
-          (websocket-server
-           35903
-           :host 'local
-           :on-open #'org-roam-ui--ws-on-open
-           :on-message #'org-roam-ui--ws-on-message
-           :on-close #'org-roam-ui--ws-on-close))
-    (when org-roam-ui-open-on-start (org-roam-ui-open)))
-   (t
-    (progn
-      (websocket-server-close org-roam-ui-ws-server)
-      (httpd-stop)
-      (remove-hook 'after-save-hook #'org-roam-ui--on-save)
-      (org-roam-ui-follow-mode -1)))))
+      (setq-local httpd-port org-roam-ui-port)
+      (setq httpd-root org-roam-ui-app-build-dir)
+      (org-roam-server-start)
+      (httpd-start)
+      (when org-roam-ui-open-on-start (org-roam-ui-open)))
+    (t
+      (progn
+        (websocket-server-close org-roam-ui-ws-server)
+        (httpd-stop)
+        (remove-hook 'after-save-hook #'org-roam-ui--on-save)
+        (org-roam-ui-follow-mode -1)))))
 
 (defun org-roam-ui--ws-on-open (ws)
   "Open the websocket WS to org-roam-ui and send initial data."
