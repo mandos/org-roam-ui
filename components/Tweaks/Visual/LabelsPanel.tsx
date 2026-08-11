@@ -17,6 +17,9 @@ import React from 'react'
 import { ColorMenu } from './ColorMenu'
 import { colorList, initialVisuals } from '../../config'
 import { SliderWithInfo } from '../SliderWithInfo'
+import { createLogger } from '../../../util/logger'
+
+const log = createLogger('labels-panel')
 
 export interface LabelsPanelProps {
   visuals: typeof initialVisuals
@@ -115,7 +118,7 @@ export const LabelsPanel = (props: LabelsPanelProps) => {
               label="Background opacity"
               value={visuals.labelBackgroundOpacity}
               onChange={(value) => {
-                console.log(visuals.labelBackgroundOpacity)
+                log.debug(visuals.labelBackgroundOpacity)
                 setVisuals({ ...visuals, labelBackgroundOpacity: value })
               }}
               min={0}

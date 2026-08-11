@@ -62,6 +62,9 @@ import { nodeSize } from '../util/nodeSize'
 import { getNodeColor } from '../util/getNodeColor'
 import { isLinkRelatedToNode } from '../util/isLinkRelatedToNode'
 import { getLinkColor } from '../util/getLinkColor'
+import { createLogger } from '../util/logger'
+
+const log = createLogger('websocket')
 
 const d3promise = import('d3-force-3d')
 
@@ -432,10 +435,10 @@ export function GraphPage() {
     // initialize websocket
     WebSocketRef.current = new ReconnectingWebSocket('ws://localhost:35903')
     WebSocketRef.current.addEventListener('open', () => {
-      console.log('Connection with Emacs established')
+      log.info('Connection with Emacs established')
     })
     WebSocketRef.current.addEventListener('message', (event: any) => {
-      console.debug(event)
+      log.debug(event)
       const bh = behaviorRef.current
       const message = JSON.parse(event.data)
       switch (message.type) {
@@ -443,7 +446,7 @@ export function GraphPage() {
           return updateGraphData(message.data)
         case 'variables':
           setEmacsVariables(message.data)
-          console.log(message)
+          log.debug(message)
           return
         case 'theme':
           return setEmacsTheme(['custom', message.data])
@@ -470,12 +473,12 @@ export function GraphPage() {
             case 'change-local-graph': {
               const node = nodeByIdRef.current[message.data.id as string]
               if (!node) break
-              console.log(message)
+              log.debug(message)
               handleLocal(node, message.data.manipulation)
               break
             }
             default:
-              return console.error('unknown message type', message.type)
+              return log.error('unknown message type', message.type)
           }
       }
     })

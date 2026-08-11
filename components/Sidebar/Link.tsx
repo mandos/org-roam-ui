@@ -67,6 +67,9 @@ import { defaultNoteStyle, viewerNoteStyle, outlineNoteStyle } from './noteStyle
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { getThemeColor } from '../../util/getThemeColor'
+import { createLogger } from '../../util/logger'
+
+const log = createLogger('link')
 
 export const NodeLink = (props: NodeLinkProps) => {
   const {
@@ -149,7 +152,7 @@ export const PreviewLink = (props: LinkProps) => {
   const type = href.replaceAll(/(.*?)\:.*/g, '$1')
 
   const extraNoteStyle = outline ? outlineNoteStyle : viewerNoteStyle
-  console.log(previewNode)
+  log.debug(previewNode)
   const getText = () => {
     fetch(`http://localhost:35901/node/${id}`)
       .then((res) => {
@@ -162,7 +165,7 @@ export const PreviewLink = (props: LinkProps) => {
         }
       })
       .catch((e) => {
-        console.log(e)
+        log.error(e)
         return 'Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.'
       })
   }

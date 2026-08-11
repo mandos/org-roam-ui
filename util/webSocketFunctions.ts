@@ -1,5 +1,8 @@
 import { OrgRoamNode } from '../api'
 import ReconnectingWebSocket from 'reconnecting-websocket'
+import { createLogger } from './logger'
+
+const log = createLogger('websocket')
 
 export function sendMessageToEmacs(command: string, data: {}, webSocket: ReconnectingWebSocket) {
   webSocket.send(JSON.stringify({ command: command, data: data }))
@@ -17,7 +20,7 @@ export function deleteNodeInEmacs(node: OrgRoamNode, webSocket: ReconnectingWebS
   if (node.level !== 0) {
     return
   }
-  console.log('Remove node: %s in file %s', node.id, node.file)
+  log.debug('Remove node: %s in file %s', node.id, node.file)
   sendMessageToEmacs('delete', { id: node.id, file: node.file }, webSocket)
 }
 

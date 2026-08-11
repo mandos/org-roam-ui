@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { LinksByNodeId, NodeByCite, NodeById } from '../pages/index'
 import { ProcessedOrg } from './processOrg'
+import { createLogger } from './logger'
+
+const log = createLogger('uniorg')
 
 export interface UniOrgProps {
   nodeById: NodeById
@@ -46,13 +49,13 @@ export const UniOrg = (props: UniOrgProps) => {
           return '(empty node)'
         }
         if (res !== 'error') {
-          console.log(res)
+          log.debug(res)
           setPreviewText(res)
         }
       })
       .catch((e) => {
         setPreviewText('(could not find node)')
-        console.log(e)
+        log.error(e)
         return 'Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.'
       })
   }, [previewNode.id])

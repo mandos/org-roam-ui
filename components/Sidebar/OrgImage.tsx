@@ -3,7 +3,10 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import path from 'path'
 import { Container } from '@chakra-ui/react'
+import { createLogger } from '../../util/logger'
 //import '../../../public/placeholder.png'
+
+const log = createLogger('org-image')
 
 export interface OrgImageProps {
   src: string
@@ -32,7 +35,7 @@ export const OrgImage = (props: OrgImageProps) => {
   }
 
   if (src.replaceAll(/(http)?.*/g, '$1')) {
-    console.log(src.replaceAll(/(http)?.*/g, '$1'))
+    log.debug(src.replaceAll(/(http)?.*/g, '$1'))
     return (
       <Image layout="responsive" loader={dumbLoader} src={src} alt="" width="auto" height="auto" />
     )

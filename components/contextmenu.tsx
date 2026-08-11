@@ -48,6 +48,9 @@ import { deleteNodeInEmacs, openNodeInEmacs, createNodeInEmacs } from '../util/w
 import { BiNetworkChart } from 'react-icons/bi'
 import { TagMenu } from './TagMenu'
 import { initialFilter, TagColors } from './config'
+import { createLogger } from '../util/logger'
+
+const log = createLogger('contextmenu')
 
 export default interface ContextMenuProps {
   background: Boolean
@@ -229,7 +232,7 @@ export const ContextMenu = (props: ContextMenuProps) => {
                 <Button
                   mr={3}
                   onClick={() => {
-                    console.log('closing')
+                    log.debug('closing')
                     onClose()
                     menuClose()
                   }}
