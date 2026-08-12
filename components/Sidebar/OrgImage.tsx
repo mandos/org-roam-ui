@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import path from 'path'
 import { Container } from '@chakra-ui/react'
-import { createLogger } from '../../util/logger'
+import { createLogger } from '@/utils/logger'
 //import '../../../public/placeholder.png'
 
 const log = createLogger('org-image')

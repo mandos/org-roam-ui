@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { LinksByNodeId, NodeByCite, NodeById } from '../pages/index'
 import { ProcessedOrg } from './processOrg'
-import { createLogger } from './logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('uniorg')
 

@@ -1,6 +1,6 @@
 import { OrgRoamNode } from '../api'
 import ReconnectingWebSocket from 'reconnecting-websocket'
-import { createLogger } from './logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('websocket')
 

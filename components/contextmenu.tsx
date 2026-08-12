@@ -48,7 +48,7 @@ import { deleteNodeInEmacs, openNodeInEmacs, createNodeInEmacs } from '../util/w
 import { BiNetworkChart } from 'react-icons/bi'
 import { TagMenu } from './TagMenu'
 import { initialFilter, TagColors } from './config'
-import { createLogger } from '../util/logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('contextmenu')
 

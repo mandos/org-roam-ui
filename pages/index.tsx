@@ -62,7 +62,7 @@ import { nodeSize } from '../util/nodeSize'
 import { getNodeColor } from '../util/getNodeColor'
 import { isLinkRelatedToNode } from '../util/isLinkRelatedToNode'
 import { getLinkColor } from '../util/getLinkColor'
-import { createLogger } from '../util/logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('websocket')
 

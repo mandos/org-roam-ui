@@ -17,7 +17,7 @@ import React from 'react'
 import { ColorMenu } from './ColorMenu'
 import { colorList, initialVisuals } from '../../config'
 import { SliderWithInfo } from '../SliderWithInfo'
-import { createLogger } from '../../../util/logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('labels-panel')
 

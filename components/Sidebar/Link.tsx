@@ -67,7 +67,7 @@ import { defaultNoteStyle, viewerNoteStyle, outlineNoteStyle } from './noteStyle
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { getThemeColor } from '../../util/getThemeColor'
-import { createLogger } from '../../util/logger'
+import { createLogger } from '@/utils/logger'
 
 const log = createLogger('link')
 
