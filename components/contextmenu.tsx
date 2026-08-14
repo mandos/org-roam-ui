@@ -146,7 +146,10 @@ export const ContextMenu = (props: ContextMenuProps) => {
                   <MenuItem icon={<ExternalLinkIcon />}>Open in Zotero</MenuItem>
                 )}
                 {scope.nodeIds.length === 0 && (
-                  <MenuItem icon={<BiNetworkChart />} onClick={() => handleLocal(target!, 'replace')}>
+                  <MenuItem
+                    icon={<BiNetworkChart />}
+                    onClick={() => handleLocal(target!, 'replace')}
+                  >
                     Open local graph
                   </MenuItem>
                 )}

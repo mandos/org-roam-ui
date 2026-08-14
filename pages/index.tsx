@@ -64,7 +64,7 @@ import { isLinkRelatedToNode } from '../util/isLinkRelatedToNode'
 import { getLinkColor } from '../util/getLinkColor'
 import { createLogger } from '@/utils/logger'
 
-const log = createLogger('websocket')
+const log = createLogger()
 
 const d3promise = import('d3-force-3d')
 

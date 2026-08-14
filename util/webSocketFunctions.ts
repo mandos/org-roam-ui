@@ -25,5 +25,9 @@ export function deleteNodeInEmacs(node: OrgRoamNode, webSocket: ReconnectingWebS
 }
 
 export function createNodeInEmacs(node: OrgRoamNode, webSocket: ReconnectingWebSocket) {
-  sendMessageToEmacs('create', { id: node.id, title: node.title, ref: node.properties.ROAM_REFS }, webSocket)
+  sendMessageToEmacs(
+    'create',
+    { id: node.id, title: node.title, ref: node.properties.ROAM_REFS },
+    webSocket,
+  )
 }

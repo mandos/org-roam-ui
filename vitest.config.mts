@@ -2,10 +2,10 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
-    tsconfigPaths: true
+    tsconfigPaths: true,
   },
   test: {
     globals: true,
-    exclude: ['**/node_modules/**', 'build/**', 'out/**']
-  }
+    exclude: ['**/node_modules/**', 'build/**', 'out/**'],
+  },
 })

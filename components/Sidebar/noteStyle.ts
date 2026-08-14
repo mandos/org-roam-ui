@@ -201,6 +201,6 @@ export const defaultNoteStyle = {
   '.figure p': { textAlign: 'center' },
   '.math.math-display .katex': {
     overflow: 'auto',
-    minHeight: '1.5em'
-  }
+    minHeight: '1.5em',
+  },
 }
