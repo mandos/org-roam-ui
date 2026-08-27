@@ -7,6 +7,7 @@ import * as d3int from 'd3-interpolate'
 import { ThemeContext } from '../util/themecontext'
 import { usePersistantState } from '../util/persistant-state'
 import { themes } from '../components/themes'
+import { EmacsProvider } from '@/context/emacs'
 
 function MyApp({ Component, pageProps }: AppProps) {
   type Theme = [string, { [color: string]: string }]
@@ -31,11 +32,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     setEmacsTheme(
       JSON.parse(localStorage.getItem('colorTheme') ?? JSON.stringify(initialTheme)) ??
-        initialTheme,
+      initialTheme,
     )
     setHighlightColor(
       JSON.parse(localStorage.getItem('highlightColor') ?? JSON.stringify(highlightColor)) ??
-        highlightColor,
+      highlightColor,
     )
     setIsInitialized(true)
   }, [])
@@ -47,11 +48,13 @@ function MyApp({ Component, pageProps }: AppProps) {
     setHighlightColor: setHighlightColor,
   }
   return (
-    <ThemeContext.Provider value={themeObject as typeof themeObject}>
-      <SubApp>
-        <Component {...pageProps} />
-      </SubApp>
-    </ThemeContext.Provider>
+    <EmacsProvider>
+      <ThemeContext.Provider value={themeObject as typeof themeObject}>
+        <SubApp>
+          <Component {...pageProps} />
+        </SubApp>
+      </ThemeContext.Provider>
+    </EmacsProvider>
   )
 }
 

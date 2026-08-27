@@ -15,6 +15,7 @@ export interface EmacsTransport {
   send(data: string): void
   addEventListener(type: 'message', listener: (event: EmacsTransportEvent) => void): void
   addEventListener(type: 'open' | 'close' | 'error', listener: () => void): void
+  removeEventListener(type: 'open' | 'message' | 'close' | 'error', listener: (event: EmacsTransportEvent | null) => void): void
   getState(): ReadyState
 }
 
@@ -38,6 +39,9 @@ export function createEmacsTransport(url: string): EmacsTransport {
     },
     addEventListener: (type, listener) => {
       webSocket.addEventListener(type, listener)
+    },
+    removeEventListener: (type, listener) => {
+      webSocket.removeEventListener(type, listener)
     },
     getState: () => {
       switch (webSocket.readyState) {

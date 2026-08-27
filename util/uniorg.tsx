@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { LinksByNodeId, NodeByCite, NodeById } from '../pages/index'
 import { ProcessedOrg } from './processOrg'
 import { createLogger } from '@/utils/logger'
+import { useEmacs } from '@/context/emacs'
 
 const log = createLogger('uniorg')
 
@@ -38,26 +39,19 @@ export const UniOrg = (props: UniOrgProps) => {
 
   const [previewText, setPreviewText] = useState('')
 
+  const emacsClient = useEmacs().client
+
   const id = encodeURIComponent(encodeURIComponent(previewNode.id))
+
   useEffect(() => {
-    fetch(`http://localhost:35901/node/${id}`)
-      .then((res) => {
-        return res.text()
-      })
-      .then((res) => {
-        if (res === '') {
-          return '(empty node)'
-        }
-        if (res !== 'error') {
-          log.debug(res)
-          setPreviewText(res)
-        }
-      })
-      .catch((e) => {
-        setPreviewText('(could not find node)')
-        log.error(e)
-        return 'Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.'
-      })
+    emacsClient.getOrgText(id).then((res) => {
+      log.debug(res)
+      setPreviewText(res)
+    }).catch((e) => {
+      setPreviewText(`(could recieve data for node: ${id})`)
+      log.error(e)
+      return 'Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.'
+    })
   }, [previewNode.id])
 
   return (

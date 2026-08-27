@@ -167,6 +167,8 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
 (defvar org-roam-ui-ws-server nil
   "The websocket server for org-roam-ui.")
 
+(defvar org-roam-ws-server nil
+  "The websocket server for org-roam-ui.")
 
 (defun org-roam-server-start ()
   "Start Websocket server."
@@ -178,6 +180,40 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
       :on-open #'org-roam-ui--ws-on-open
       :on-message #'org-roam-ui--ws-on-message
       :on-close #'org-roam-ui--ws-on-close)))
+
+(defun org-roam-dev-server-start ()
+  "Start Websocket server (dev version)."
+  (interactive)
+  (setq org-roam-ws-server
+    (websocket-server
+      35904
+      :host 'local
+      :on-message (lambda (ws frame)
+                    (let* ((text (websocket-frame-text frame))
+                            (msg (json-parse-string text :object-type 'alist))
+                            (command (alist-get 'command msg))
+                            (data (alist-get 'data msg)))
+                      (message "[oru-dev <-] %s" text)
+                      (cond
+                        ((string= command "getNodeBody")
+                          (org-roam-ui--send-text (alist-get 'id data) ws))
+                        (t
+                          (message
+                            "Something went very wrong when receiving a message from org-roam-ui"))))))))
+
+(defun org-roam-both-servers-start ()
+  "For now start both my Websocket servers."
+  (interactive)
+  (org-roam-server-start)
+  (org-roam-dev-server-start)
+  )
+
+(defun org-roam-both-servers-restart ()
+  "Restart both Websocket servers."
+  (interactive)
+  (websocket-server-close org-roam-ui-ws-server)
+  (websocket-server-close org-roam-ws-server)
+  (org-roam-both-servers-start))
 
 ;;;###autoload
 (define-minor-mode
@@ -298,16 +334,19 @@ TODO: Be able to delete individual nodes."
 
 (defun org-roam-ui--send-text (id ws)
   "Send the text from org-node ID through the websocket WS."
-  (let ((text (org-roam-ui--get-text id)))
-    (websocket-send-text ws
-      (json-encode
-        `((type . "orgText")
-           (data . ,text))))))
+  (let* ((text (org-roam-ui--get-text id))
+          (payload (json-encode
+                     `((eventName . "getText")
+                        (id . ,id)
+                        (data . ,text)))))
+    (message "[oru-dev ->] %s" payload)
+    (websocket-send-text ws payload)))
 
-(defservlet* node/:id text/plain ()
-  "Servlet for accessing node content."
-  (insert (org-roam-ui--get-text (org-link-decode id)))
-  (httpd-send-header t "text/plain" 200 :Access-Control-Allow-Origin "*"))
+;; TODO: Remove it after testing if WS version have all I need
+;; (defservlet* node/:id text/plain ()
+;;   "Servlet for accessing node content."
+;;   (insert (org-roam-ui--get-text (org-link-decode id)))
+;;   (httpd-send-header t "text/plain" 200 :Access-Control-Allow-Origin "*"))
 
 (defservlet* img/:file text/plain ()
   "Servlet for accessing images found in org-roam files."
