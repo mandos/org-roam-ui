@@ -4,11 +4,7 @@ import { createEmacsTransport } from "@/emacs/transport";
 
 const EMACS_WS_URL = 'ws://localhost:35904'
 
-interface EmacsContextProps {
-  client: EmacsClient
-}
-
-const EmacsContext = createContext<EmacsContextProps | undefined>(undefined)
+const EmacsContext = createContext<EmacsClient | undefined>(undefined)
 
 export function EmacsProvider({ children }: { children: React.ReactNode }) {
   const transportRef = useRef<ReturnType<typeof createEmacsTransport> | null>(null)
@@ -29,12 +25,12 @@ export function EmacsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const value = useMemo<EmacsContextProps>(() => ({ client: clientRef.current! }), [])
+  const value = useMemo<EmacsClient>(() => (clientRef.current!), [])
 
   return <EmacsContext.Provider value={value}>{children}</EmacsContext.Provider>
 }
 
-export function useEmacs(): EmacsContextProps {
+export function useEmacs(): EmacsClient {
   const ctx = useContext(EmacsContext)
   if (ctx === undefined) {
     throw new Error('useEmacs must be used within an EmacsProvider')

@@ -39,7 +39,7 @@ export const UniOrg = (props: UniOrgProps) => {
 
   const [previewText, setPreviewText] = useState('')
 
-  const emacsClient = useEmacs().client
+  const emacsClient = useEmacs()
 
   const id = encodeURIComponent(encodeURIComponent(previewNode.id))
 

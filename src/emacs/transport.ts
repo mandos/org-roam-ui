@@ -13,9 +13,8 @@ export interface EmacsTransport {
   open(): void
   close(): void
   send(data: string): void
-  addEventListener(type: 'message', listener: (event: EmacsTransportEvent) => void): void
-  addEventListener(type: 'open' | 'close' | 'error', listener: () => void): void
-  removeEventListener(type: 'open' | 'message' | 'close' | 'error', listener: (event: EmacsTransportEvent | null) => void): void
+  addEventListener(type: 'open' | 'close' | 'error' | 'message', listener: (event: EmacsTransportEvent) => void): void
+  removeEventListener(type: 'open' | 'message' | 'close' | 'error', listener: (event: EmacsTransportEvent) => void): void
   getState(): ReadyState
 }
 
