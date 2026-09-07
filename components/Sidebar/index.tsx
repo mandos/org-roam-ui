@@ -20,7 +20,7 @@ import { BiDotsVerticalRounded, BiFile, BiNetworkChart } from 'react-icons/bi'
 
 import { GraphData, NodeObject, LinkObject } from 'force-graph'
 import { OrgRoamNode } from '../../api'
-import { ThemeContext } from '../../util/themecontext'
+import { useTheme } from '@/context/theme'
 import { LinksByNodeId, NodeByCite, NodeById, Scope } from '../../pages/index'
 import { Resizable } from 're-resizable'
 import { usePersistantState } from '../../util/persistant-state'
@@ -83,7 +83,7 @@ const Sidebar = (props: SidebarProps) => {
     useInheritance,
   } = props
 
-  const { highlightColor } = useContext(ThemeContext)
+  const { highlightColor } = useTheme()
   const [previewRoamNode, setPreviewRoamNode] = useState<OrgRoamNode | undefined>()
   const [sidebarWidth, setSidebarWidth] = usePersistantState<number>('sidebarWidth', 400)
 

@@ -25,7 +25,6 @@ import { ProcessedOrg } from '../../util/processOrg'
 // import katex from 'rehype-katex'
 import 'katex/dist/katex.css'
 // import rehype2react from 'rehype-react'
-import { ThemeContext } from '../../util/themecontext'
 import { LinksByNodeId, NodeByCite, NodeById } from '../../pages'
 
 export interface LinkProps {
@@ -284,7 +283,7 @@ export const PreviewLink = (props: LinkProps) => {
                     color="black"
                     px={3}
                     sx={{ ...defaultNoteStyle, ...extraNoteStyle }}
-                    //overflowY="scroll"
+                  //overflowY="scroll"
                   >
                     <ProcessedOrg
                       previewText={orgText}

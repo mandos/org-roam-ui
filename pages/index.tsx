@@ -1,10 +1,7 @@
-import { HamburgerIcon } from '@chakra-ui/icons'
 import {
   Box,
   Flex,
-  Heading,
   IconButton,
-  Slide,
   Tooltip,
   useDisclosure,
   useOutsideClick,
@@ -17,7 +14,6 @@ import { GraphData, LinkObject, NodeObject } from 'force-graph'
 import Head from 'next/head'
 import React, {
   ComponentPropsWithoutRef,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -51,7 +47,8 @@ import { ContextMenu } from '../components/contextmenu'
 import Sidebar from '../components/Sidebar'
 import { Tweaks } from '../components/Tweaks'
 import { usePersistantState } from '../util/persistant-state'
-import { ThemeContext, ThemeContextProps } from '../util/themecontext'
+// TODO: Remove after creating new color managment layer
+// import { ThemeContext, ThemeContextProps } from '../util/themecontext'
 import { openNodeInEmacs } from '../util/webSocketFunctions'
 import { drawLabels } from '../components/Graph/drawLabels'
 import { VariablesContext } from '../util/variablesContext'
@@ -63,6 +60,7 @@ import { getNodeColor } from '../util/getNodeColor'
 import { isLinkRelatedToNode } from '../util/isLinkRelatedToNode'
 import { getLinkColor } from '../util/getLinkColor'
 import { createLogger } from '@/utils/logger'
+import { useTheme as useAppTheme } from '@/context/theme'
 
 const log = createLogger()
 
@@ -351,10 +349,11 @@ export function GraphPage() {
     if (!graphData) {
       return
     }
+    // log.debug("graphData:", currentGraphDataRef.current)
     currentGraphDataRef.current = graphData
   }, [graphData])
 
-  const { setEmacsTheme } = useContext(ThemeContext)
+  // const { setEmacsTheme } = useContext(ThemeContext)
 
   const scopeRef = useRef<Scope>({ nodeIds: [], excludedNodeIds: [] })
   const behaviorRef = useRef(initialBehavior)
@@ -448,8 +447,9 @@ export function GraphPage() {
           setEmacsVariables(message.data)
           log.debug(message)
           return
-        case 'theme':
-          return setEmacsTheme(['custom', message.data])
+        // TODO: Remove when create new way to manage colors
+        // case 'theme':
+        //   return setEmacsTheme(['custom', message.data])
         case 'command':
           switch (message.data.commandName) {
             case 'local':
@@ -799,7 +799,8 @@ export const Graph = function (props: GraphProps) {
 
   const theme = useTheme()
 
-  const { emacsTheme } = useContext<ThemeContextProps>(ThemeContext)
+  // TODO: Remove after creating new color managment layer
+  // const { emacsTheme } = useContext<ThemeContextProps>(ThemeContext)
 
   const handleClick = (click: string, node: OrgRoamNode, event: any) => {
     switch (click) {
@@ -1144,7 +1145,7 @@ export const Graph = function (props: GraphProps) {
         return [color, Object.fromEntries(crisscross)]
       }),
     )
-  }, [emacsTheme])
+  }, [theme])
 
   const previouslyHighlightedNodes = useMemo(() => {
     const previouslyHighlightedLinks =
@@ -1159,12 +1160,12 @@ export const Graph = function (props: GraphProps) {
 
   const labelTextColor = useMemo(
     () => getThemeColor(visuals.labelTextColor, theme),
-    [visuals.labelTextColor, emacsTheme],
+    [visuals.labelTextColor, theme],
   )
 
   const labelBackgroundColor = useMemo(
     () => getThemeColor(visuals.labelBackgroundColor, theme),
-    [visuals.labelBackgroundColor, emacsTheme],
+    [visuals.labelBackgroundColor, theme],
   )
 
   const [dragging, setDragging] = useState(false)

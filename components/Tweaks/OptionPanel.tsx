@@ -1,6 +1,6 @@
 import { CUIAutoComplete } from 'chakra-ui-autocomplete'
 import React, { useContext, useState } from 'react'
-import { ThemeContext } from '../../util/themecontext'
+import { useTheme } from '@/context/theme'
 import { initialFilter } from '../config'
 
 export interface OptionPanelProps {
@@ -14,7 +14,7 @@ export interface OptionPanelProps {
 
 export const OptionPanel = (props: OptionPanelProps) => {
   const { filter, listName, labelFilter, displayName, setFilter, options = [] } = props
-  const { highlightColor } = useContext(ThemeContext)
+  const { highlightColor } = useTheme()
   const optionArray =
     options?.map((option) => {
       return { value: option, label: labelFilter ? option.replace(labelFilter, '') : option }

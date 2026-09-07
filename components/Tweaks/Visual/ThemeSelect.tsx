@@ -13,11 +13,11 @@ import {
 
 import { themes } from '../../themes'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-import { ThemeContext } from '../../../util/themecontext'
+import { useTheme } from '@/context/theme'
 
 export const ThemeSelect = () => {
   type Theme = { [key: string]: string }
-  const { emacsTheme, setEmacsTheme, highlightColor } = useContext(ThemeContext)
+  const { emacsTheme, setEmacsTheme, highlightColor } = useTheme()
   return (
     <Flex alignItems="center" justifyContent="space-between" pl={7} pr={2}>
       <Text>Theme</Text>

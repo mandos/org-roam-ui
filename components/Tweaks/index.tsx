@@ -28,11 +28,11 @@ import {
 
 import FilterPanel from './Filter/FilterPanel'
 
-import { ThemeContext } from '../../util/themecontext'
 import { usePersistantState } from '../../util/persistant-state'
 import { PhysicsPanel } from './Physics/PhysicsPanel'
 import { BehaviorPanel } from './Behavior/BehaviorPanel'
 import { VisualsPanel } from './Visual/VisualsPanel'
+import { useTheme as useAppTheme } from '@/context/theme'
 
 export interface TweakProps {
   physics: typeof initialPhysics
@@ -80,7 +80,7 @@ export const Tweaks = (props: TweakProps) => {
   } = props
 
   const [showTweaks, setShowTweaks] = usePersistantState('showTweaks', false)
-  const { highlightColor, setHighlightColor } = useContext(ThemeContext)
+  const { highlightColor, setHighlightColor } = useAppTheme()
 
   return !showTweaks ? (
     <Box
