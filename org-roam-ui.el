@@ -191,15 +191,28 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
       :on-message (lambda (ws frame)
                     (let* ((text (websocket-frame-text frame))
                             (msg (json-parse-string text :object-type 'alist))
-                            (command (alist-get 'command msg))
-                            (data (alist-get 'data msg)))
+                            (jsonrpc (alist-get 'jsonrpc msg))
+                            (method (alist-get 'method msg))
+                            (params (alist-get 'params msg))
+                            (reqId (alist-get 'id msg)))
                       (message "[oru-dev <-] %s" text)
+                      ;; TODO: Check if we really get JSON-RPC request
                       (cond
-                        ((string= command "getNodeBody")
-                          (org-roam-ui--send-text (alist-get 'id data) ws))
+                        ((string= method "node/getBody")
+                          (org-roam-ui--send-node-body (alist-get 'nodeId params) reqId ws))
+                        ((string= method "theme/get")
+                          (org-roam-ui-sync-theme2 reqId ws))
                         (t
                           (message
                             "Something went very wrong when receiving a message from org-roam-ui"))))))))
+
+(defun org-roam-ui-sync-theme2 (reqId ws)
+  "Sync your current Emacs theme with org-roam-ui."
+  (interactive)
+  (org-roam-server--send-text ws
+    (json-encode `((jsonrpc . "2.0")
+                    (id . ,reqId)
+                    (result . ,(org-roam-ui--update-theme))))))
 
 (defun org-roam-both-servers-start ()
   "For now start both my Websocket servers."
@@ -332,15 +345,27 @@ TODO: Be able to delete individual nodes."
         (org-narrow-to-element))
       (buffer-substring-no-properties (buffer-end -1) (buffer-end 1)))))
 
-(defun org-roam-ui--send-text (id ws)
-  "Send the text from org-node ID through the websocket WS."
-  (let* ((text (org-roam-ui--get-text id))
+(defun org-roam-ui--send-node-body (nodeId reqId ws)
+  "Send the text of the org-roam node identified by NODEID.
+NODEID is the org-roam node id whose text is looked up via
+`org-roam-ui--get-text'.  REQID is the JSON-RPC request id echoed
+back in the response so the client can match this reply to the
+request that triggered it.  WS is the websocket connection
+the response is written to."
+  (let* ((text (org-roam-ui--get-text nodeId))
           (payload (json-encode
-                     `((eventName . "getText")
-                        (id . ,id)
-                        (data . ,text)))))
-    (message "[oru-dev ->] %s" payload)
-    (websocket-send-text ws payload)))
+                     `((jsonrpc . "2.0")
+                        (id . ,reqId)
+                        (result . ,text)))))
+    (org-roam-server--send-text ws payload)))
+
+(defun org-roam-server--json-rpc-response (id result)
+  "Generate response.")
+
+(defun org-roam-server--send-text (ws payload)
+  "Send text through Websocket"
+  (message "[oru-dev ->] %s" payload)
+  (websocket-send-text ws payload))
 
 ;; TODO: Remove it after testing if WS version have all I need
 ;; (defservlet* node/:id text/plain ()
@@ -602,18 +627,20 @@ from all other links."
     (if org-roam-ui-sync-theme
       (if (boundp 'doom-themes--colors)
         (let*
-          ((colors (butlast doom-themes--colors
-                     (- (length doom-themes--colors) 25)))
-            doom-theme)
+          ((colors (butlast doom-themes--colors (- (length doom-themes--colors) 25)))
+            doom-theme-colors)
           (progn
             (dolist (color colors)
               (push
                 (cons (car color) (car (cdr color)))
-                doom-theme)))
-          (setq ui-theme doom-theme))
-        (setq ui-theme (org-roam-ui-get-theme)))
+                doom-theme-colors)))
+          (setq ui-theme `((name . ,(concat "doom emacs ("(symbol-name doom-theme) ")"))
+                            (colors . ,doom-theme-colors))))
+        (setq ui-theme `((name . "emacs")
+                          (colors . ,(org-roam-ui-get-theme)))))
       (when org-roam-ui-custom-theme
-	(setq ui-theme org-roam-ui-custom-theme)))
+        (setq ui-theme `((name . "emacs(org-roam-ui)")
+                          (colors . ,org-roam-ui-custom-theme)))))
     ui-theme))
 
 

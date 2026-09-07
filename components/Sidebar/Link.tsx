@@ -65,8 +65,9 @@ export interface NormalLinkProps {
 import { defaultNoteStyle, viewerNoteStyle, outlineNoteStyle } from './noteStyle'
 import { Scrollbars } from 'react-custom-scrollbars-2'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
-import { getThemeColor } from '../../util/getThemeColor'
 import { createLogger } from '@/utils/logger'
+import { useTheme as useAppTheme } from '@/context/theme'
+import { getThemeColor } from '@/util/getThemeColor'
 
 const log = createLogger('link')
 
@@ -82,7 +83,7 @@ export const NodeLink = (props: NodeLinkProps) => {
     children,
     isWiki,
   } = props
-  const { highlightColor } = useContext(ThemeContext)
+  const { highlightColor } = useAppTheme()
 
   const theme = useTheme()
   const coolHighlightColor = getThemeColor(highlightColor, theme)
@@ -117,7 +118,7 @@ export const NodeLink = (props: NodeLinkProps) => {
 
 export const NormalLink = (props: NormalLinkProps) => {
   const { href, children } = props
-  const { highlightColor } = useContext(ThemeContext)
+  const { highlightColor } = useAppTheme()
   return (
     <Link color={highlightColor} isExternal href={href}>
       {children}
