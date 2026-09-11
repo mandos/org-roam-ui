@@ -14,6 +14,7 @@ import { GraphData, LinkObject, NodeObject } from 'force-graph'
 import Head from 'next/head'
 import React, {
   ComponentPropsWithoutRef,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -47,8 +48,6 @@ import { ContextMenu } from '../components/contextmenu'
 import Sidebar from '../components/Sidebar'
 import { Tweaks } from '../components/Tweaks'
 import { usePersistantState } from '../util/persistant-state'
-// TODO: Remove after creating new color managment layer
-// import { ThemeContext, ThemeContextProps } from '../util/themecontext'
 import { openNodeInEmacs } from '../util/webSocketFunctions'
 import { drawLabels } from '../components/Graph/drawLabels'
 import { VariablesContext } from '../util/variablesContext'
@@ -126,7 +125,7 @@ export function GraphPage() {
   const [emacsNodeId, setEmacsNodeId] = useState<string | null>(null)
   const [behavior, setBehavior] = usePersistantState('behavior', initialBehavior)
   const [mouse, setMouse] = usePersistantState('mouse', initialMouse)
-  const [coloring, setColoring] = usePersistantState('coloring', initialColoring)
+  const [coloring, setColoring] = useState(initialColoring)
   const [local, setLocal] = usePersistantState('local', initialLocal)
 
   const [
@@ -308,6 +307,7 @@ export function GraphPage() {
       const orgRoamGraphDataClone = JSON.parse(JSON.stringify(orgRoamGraphDataProcessed))
       currentGraphDataRef.current = orgRoamGraphDataClone
       setGraphData(orgRoamGraphDataClone)
+      log.debug(orgRoamGraphDataClone)
       return
     }
 
@@ -345,6 +345,7 @@ export function GraphPage() {
 
     setGraphData({ nodes: newNodes as NodeObject[], links: newerLinks })
   }
+
   useEffect(() => {
     if (!graphData) {
       return
@@ -798,6 +799,7 @@ export const Graph = function (props: GraphProps) {
   const [hoverNode, setHoverNode] = useState<NodeObject | null>(null)
 
   const theme = useTheme()
+  const appTheme = useAppTheme()
 
   // TODO: Remove after creating new color managment layer
   // const { emacsTheme } = useContext<ThemeContextProps>(ThemeContext)
@@ -826,6 +828,7 @@ export const Graph = function (props: GraphProps) {
 
   const centralHighlightedNode = useRef<NodeObject | null>(null)
 
+  // Effect connected with node folowing from emacs
   useEffect(() => {
     if (!emacsNodeId) {
       return
@@ -1089,6 +1092,7 @@ export const Graph = function (props: GraphProps) {
     },
   )
 
+  // NOTE: Generating higlited nodes
   const highlightedNodes = useMemo(() => {
     if (!centralHighlightedNode.current) {
       return {}
@@ -1098,13 +1102,17 @@ export const Graph = function (props: GraphProps) {
     if (!links) {
       return {}
     }
-    return Object.fromEntries(
+    const debug = Object.fromEntries(
       [
         centralHighlightedNode.current?.id! as string,
         ...links.flatMap((link) => [link.source, link.target]),
       ].map((nodeId) => [nodeId, {}]),
     )
+    // TODO: Remove debug
+    log.debug(debug)
+    return debug
   }, [centralHighlightedNode.current, filteredLinksByNodeIdRef.current])
+
 
   useEffect(() => {
     if (sidebarHighlightedNode?.id) {
@@ -1118,6 +1126,7 @@ export const Graph = function (props: GraphProps) {
 
   useEffect(() => {
     centralHighlightedNode.current = hoverNode
+
     if (hoverNode) {
       lastHoverNode.current = hoverNode as OrgRoamNode
     }
@@ -1134,6 +1143,7 @@ export const Graph = function (props: GraphProps) {
     }
   }, [hoverNode])
 
+  // TODO: Remove
   const highlightColors = useMemo(() => {
     return Object.fromEntries(
       colorList.map((color) => {
@@ -1181,17 +1191,16 @@ export const Graph = function (props: GraphProps) {
     nodeColor: (node) => {
       return getNodeColor({
         node: node as OrgRoamNode,
-        theme,
+        theme: appTheme,
         visuals,
-        cluster: clusterRef.current,
-        coloring,
-        emacsNodeId,
-        highlightColors,
         highlightedNodes,
         previouslyHighlightedNodes,
-        linksByNodeId: filteredLinksByNodeIdRef.current,
-        opacity,
         tagColors,
+        opacity,
+        emacsNodeId,
+        linksByNodeId: filteredLinksByNodeIdRef.current,
+        cluster: clusterRef.current,
+        coloring,
       })
     },
     nodeRelSize: visuals.nodeRel,

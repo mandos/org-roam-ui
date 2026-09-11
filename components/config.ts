@@ -1,4 +1,6 @@
+import { ColorPalette } from '@/context/theme'
 import { Easing } from '@tweenjs/tween.js'
+import { UseComboboxGetToggleButtonPropsOptions } from 'downshift'
 const options: string[] = []
 const algorithms: { [name: string]: (percent: number) => number } = {}
 for (let type in Easing) {
@@ -47,8 +49,27 @@ export const initialFilter = {
   date: [],
   noter: true,
 }
-export const initialColoring = {
+
+type ColoringMethod = 'degree' | 'community'
+
+export type Coloring = {
+  method: ColoringMethod
+  emacsNode: keyof ColorPalette
+  refNode: keyof ColorPalette
+  link: keyof ColorPalette,
+  nodeScheme: (keyof ColorPalette)[]
+
+  background: keyof ColorPalette,
+}
+
+export const initialColoring: Coloring = {
   method: 'degree',
+  emacsNode: 'base8',
+  refNode: 'base6',
+  link: 'base4',
+  nodeScheme: ['magenta', 'blue', 'violet', 'cyan', 'yellow', 'teal', 'orange', 'green', 'red'],
+
+  background: 'base0'
 }
 
 export const initialVisuals = {
@@ -95,6 +116,7 @@ export const initialVisuals = {
   nodeHighlight: 'purple.500',
   linkHighlight: 'purple.500',
   backgroundColor: 'white',
+  // TODO: is it needed?
   emacsNodeColor: 'gray.800',
   labelTextColor: 'black',
   labelBackgroundColor: '',

@@ -50,8 +50,8 @@ export const ThemeSelect = () => {
             >
               <Text>{theme}</Text>
               <Flex height={6} width={20} flexDirection="column" flexWrap="wrap">
-                {Object.values(themes[theme as string]).map((color: string) => {
-                  return <Box key={color} bgColor={color} flex="1 1 8px"></Box>
+                {Object.entries(themes[theme as string]).map(([name, color]) => {
+                  return <Box key={name} bgColor={color as string} flex="1 1 8px"></Box>
                 })}
               </Flex>
             </MenuItem>

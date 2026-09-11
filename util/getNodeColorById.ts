@@ -1,7 +1,7 @@
 import { initialColoring, initialVisuals } from '../components/config'
 import { LinksByNodeId } from '../pages'
-import { numberWithinRange } from './numberWithinRange'
 
+// TODO: I cannot remove it for now, because it is used in getLinkNodeColor
 export const getNodeColorById = ({
   id,
   linksByNodeId,
@@ -18,7 +18,7 @@ export const getNodeColorById = ({
   const linklen = linksByNodeId[id!]?.length ?? 0
   if (coloring.method === 'degree') {
     return visuals.nodeColorScheme[
-      numberWithinRange(linklen, 0, visuals.nodeColorScheme.length - 1)
+      Math.min(Math.max(linklen, 0), visuals.nodeColorScheme.length - 1)
     ]
   }
   return visuals.nodeColorScheme[linklen && cluster[id] % visuals.nodeColorScheme.length]
