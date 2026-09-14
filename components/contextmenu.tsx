@@ -1,12 +1,8 @@
 import React, { useRef } from 'react'
 import {
-  Box,
   Menu,
   MenuItem,
   MenuList,
-  MenuGroup,
-  MenuItemOption,
-  MenuOptionGroup,
   Heading,
   MenuDivider,
   Modal,
@@ -18,27 +14,16 @@ import {
   ModalCloseButton,
   useDisclosure,
   Button,
-  PopoverTrigger,
-  PopoverContent,
-  Popover,
-  Flex,
-  PopoverBody,
-  PopoverCloseButton,
-  PopoverArrow,
-  PopoverHeader,
-  PopoverFooter,
-  Portal,
   Text,
   VStack,
+  useToast,
 } from '@chakra-ui/react'
 import {
   DeleteIcon,
   EditIcon,
-  CopyIcon,
   AddIcon,
   ViewIcon,
   ExternalLinkIcon,
-  ChevronRightIcon,
   PlusSquareIcon,
   MinusIcon,
 } from '@chakra-ui/icons'
@@ -71,6 +56,9 @@ export default interface ContextMenuProps {
 }
 
 export const ContextMenu = (props: ContextMenuProps) => {
+
+  const toast = useToast()
+
   const {
     background,
     target,
@@ -250,15 +238,20 @@ export const ContextMenu = (props: ContextMenuProps) => {
                   colorScheme="red"
                   ml={3}
                   onClick={() => {
-                    emacsClient.deleteNode(target!.file)
+                    // emacsClient.deleteNode(target!.file)
+                    // TODO: Can I click it twice... very, very fast?
+                    emacsClient.deleteNode("/tmp/not-a-file")
                       .then(() => {
                         log.debug(`Node ${target!.file} where removed.`)
+                        toast({ title: 'Node deleted', status: 'success', duration: 3000, isClosable: true })
                       })
                       .catch((e) => {
                         log.error(`Node could not be removed, reason: ${e.message}`)
+                        toast({ title: 'Could not delete node', description: e.message, status: 'error', duration: 10000, isClosable: true })
+                      }).finally(() => {
+                        onClose()
+                        menuClose()
                       })
-                    onClose()
-                    menuClose()
                   }}
                 >
                   Delete node
