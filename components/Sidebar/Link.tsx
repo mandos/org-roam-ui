@@ -68,6 +68,7 @@ import { ExternalLinkIcon } from '@chakra-ui/icons'
 import { createLogger } from '@/utils/logger'
 import { useTheme as useAppTheme } from '@/context/theme'
 import { getThemeColor } from '@/util/getThemeColor'
+import { useEmacs } from '@/context/emacs'
 
 const log = createLogger('link')
 
@@ -150,24 +151,18 @@ export const PreviewLink = (props: LinkProps) => {
   const [orgText, setOrgText] = useState<any>(null)
   const [hover, setHover] = useState(false)
   const type = href.replaceAll(/(.*?)\:.*/g, '$1')
+  const emacsClient = useEmacs()
 
   const extraNoteStyle = outline ? outlineNoteStyle : viewerNoteStyle
   log.debug(previewNode)
   const getText = () => {
-    fetch(`http://localhost:35901/node/${id}`)
-      .then((res) => {
-        return res.text()
-      })
-      .then((res) => {
-        if (res !== 'error') {
-          setOrgText(res)
-          return
-        }
-      })
-      .catch((e) => {
-        log.error(e)
-        return 'Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.'
-      })
+    emacsClient.getOrgText(id).then((res) => {
+      log.debug(res)
+      setOrgText(res)
+    }).catch((e) => {
+      log.error(e)
+      setOrgText('Could not fetch the text for some reason, sorry!\n\n This can happen because you have an id with forward slashes (/) in it.')
+    })
   }
 
   useEffect(() => {

@@ -6,7 +6,6 @@ import { Box, Flex } from '@chakra-ui/react'
 import { UniOrg } from '../../util/uniorg'
 import { Backlinks } from '../../components/Sidebar/Backlinks'
 import { defaultNoteStyle, viewerNoteStyle, outlineNoteStyle } from './noteStyle'
-import { OrgRoamLink } from '../../api'
 
 export interface NoteProps {
   setPreviewNode: any
