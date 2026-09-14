@@ -36,7 +36,6 @@ import { initialFilter, TagColors } from './config'
 import { createLogger } from '@/utils/logger'
 import { useEmacs } from '@/context/emacs'
 
-
 const log = createLogger('contextmenu')
 
 export default interface ContextMenuProps {
@@ -238,16 +237,19 @@ export const ContextMenu = (props: ContextMenuProps) => {
                   colorScheme="red"
                   ml={3}
                   onClick={() => {
-                    // emacsClient.deleteNode(target!.file)
                     // TODO: Can I click it twice... very, very fast?
-                    emacsClient.deleteNode("/tmp/not-a-file")
+                    // emacsClient.deleteNode("/tmp/not-a-file")
+                    emacsClient.deleteNode(target!.file)
                       .then(() => {
                         log.debug(`Node ${target!.file} where removed.`)
                         toast({ title: 'Node deleted', status: 'success', duration: 3000, isClosable: true })
                       })
-                      .catch((e) => {
-                        log.error(`Node could not be removed, reason: ${e.message}`)
-                        toast({ title: 'Could not delete node', description: e.message, status: 'error', duration: 10000, isClosable: true })
+                      .catch((e: unknown) => {
+                        log.error("Node couldn't be removed: ", e)
+                        const description = e instanceof Error ?
+                          `${e.message}` :
+                          "Unknown reason."
+                        toast({ title: "Node couldn't be removed", status: 'error', description: description, duration: 10000, isClosable: true })
                       }).finally(() => {
                         onClose()
                         menuClose()

@@ -1,4 +1,5 @@
 import { EmacsTransport, EmacsTransportEvent } from '@/emacs/transport'
+import { RpcError, RpcResponse } from '@/emacs/jsonrpc'
 
 type UUID = string
 
@@ -46,15 +47,15 @@ export function createEmacsClient(transport: EmacsTransport): EmacsClient {
     },
     deleteNode: (nodeFile: string): Promise<void> => {
       const id = reqId++
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject: (reason: RpcError) => void) => {
         const handleMessage = (event: EmacsTransportEvent) => {
-          let decoded: any
+          let decoded: RpcResponse
           try { decoded = JSON.parse(event.data) }
           catch { return }
           if (decoded.id !== id) return
           transport.removeEventListener('message', handleMessage)
-          if (decoded.error) {
-            reject(new Error(decoded.error.message))
+          if ('error' in decoded) {
+            reject(new RpcError(decoded.error))
             return
           }
           resolve()
