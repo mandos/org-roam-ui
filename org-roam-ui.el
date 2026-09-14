@@ -200,19 +200,51 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
                       (cond
                         ((string= method "node/getBody")
                           (org-roam-ui--send-node-body (alist-get 'nodeId params) reqId ws))
+                        ((string= method "node/delete")
+                          (org-roam-ui--on-msg-delete-node (alist-get 'nodeFile params) reqId ws))
                         ((string= method "theme/get")
-                          (org-roam-ui-sync-theme2 reqId ws))
+                          (org-roam-ui--sync-theme reqId ws))
                         (t
                           (message
-                            "Something went very wrong when receiving a message from org-roam-ui"))))))))
+                            "Error during receiving a message from websocket client (wrong request format or unknown method)"))))))))
 
-(defun org-roam-ui-sync-theme2 (reqId ws)
+(defun org-roam-ui--sync-theme (reqId ws)
   "Sync your current Emacs theme with org-roam-ui."
   (interactive)
   (org-roam-server--send-text ws
     (json-encode `((jsonrpc . "2.0")
                     (id . ,reqId)
                     (result . ,(org-roam-ui--update-theme))))))
+
+(defun org-roam-ui--on-msg-delete-node (nodeFile reqId ws)
+  "Delete a node from file NODEFILE and send response about result.
+
+Response is sent through websocket WS using REQID which should be request
+identifier.
+
+TODO: Be able to delete individual nodes, for now it's only whole file."
+  (if (file-exists-p nodeFile)
+    (condition-case e
+      (delete-file nodeFile)
+      (:success
+        (progn
+          (message "Deleted %s" nodeFile)
+          (org-roam-server--send-text ws
+            (json-encode `((jsonrpc . "2.0")
+                            (id . ,reqId)
+                            (result . "done"))))
+          (org-roam-db-sync)
+          (org-roam-ui--send-graphdata)))
+      (file-error (org-roam-server--send-text ws
+                    (json-encode `((jsonrpc . "2.0")
+                                    (id . ,reqId)
+                                    (error . ((code . 100)
+                                               (message . ,(error-message-string e)))))))))
+    (org-roam-server--send-text ws
+      (json-encode `((jsonrpc . "2.0")
+                      (id . ,reqId)
+                      (error . ((code . 101)
+                                 (message . ,(concat "File: " nodeFile " not exists so it can not be deleted.")))))))))
 
 (defun org-roam-both-servers-start ()
   "For now start both my Websocket servers."
@@ -274,8 +306,6 @@ Takes _WS and FRAME as arguments."
           (data (alist-get 'data msg)))
     (cond ((string= command "open")
             (org-roam-ui--on-msg-open-node data))
-      ((string= command "delete")
-        (org-roam-ui--on-msg-delete-node data))
       ((string= command "create")
         (org-roam-ui--on-msg-create-node data))
       (t
@@ -306,15 +336,6 @@ Takes _WS and FRAME as arguments."
     (goto-char pos)
     (run-hook-with-args 'org-roam-ui-after-open-node-functions id)))
 
-(defun org-roam-ui--on-msg-delete-node (data)
-  "Delete a node when receiving DATA from the websocket.
-
-TODO: Be able to delete individual nodes."
-  (progn
-    (message "Deleted %s" (alist-get 'file data))
-    (delete-file (alist-get 'file data))
-    (org-roam-db-sync)
-    (org-roam-ui--send-graphdata)))
 
 (defun org-roam-ui--on-msg-create-node (data)
   "Create a node when receiving DATA from the websocket."

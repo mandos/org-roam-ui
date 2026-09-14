@@ -44,11 +44,13 @@ import {
 } from '@chakra-ui/icons'
 
 import { OrgRoamGraphReponse, OrgRoamLink, OrgRoamNode } from '../api'
-import { deleteNodeInEmacs, openNodeInEmacs, createNodeInEmacs } from '../util/webSocketFunctions'
+import { openNodeInEmacs, createNodeInEmacs } from '../util/webSocketFunctions'
 import { BiNetworkChart } from 'react-icons/bi'
 import { TagMenu } from './TagMenu'
 import { initialFilter, TagColors } from './config'
 import { createLogger } from '@/utils/logger'
+import { useEmacs } from '@/context/emacs'
+
 
 const log = createLogger('contextmenu')
 
@@ -87,6 +89,7 @@ export const ContextMenu = (props: ContextMenuProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const copyRef = useRef<any>()
   const localRef = useRef<HTMLDivElement>(null)
+  const emacsClient = useEmacs();
   return (
     <div ref={localRef}>
       <>
@@ -247,7 +250,13 @@ export const ContextMenu = (props: ContextMenuProps) => {
                   colorScheme="red"
                   ml={3}
                   onClick={() => {
-                    deleteNodeInEmacs(target!, webSocket)
+                    emacsClient.deleteNode(target!.file)
+                      .then(() => {
+                        log.debug(`Node ${target!.file} where removed.`)
+                      })
+                      .catch((e) => {
+                        log.error(`Node could not be removed, reason: ${e.message}`)
+                      })
                     onClose()
                     menuClose()
                   }}

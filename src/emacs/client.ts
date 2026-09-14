@@ -4,6 +4,7 @@ type UUID = string
 
 export interface EmacsClient {
   getOrgText(nodeId: UUID): Promise<string>
+  deleteNode(file: string): Promise<void>
   getTheme(): Promise<EmacsTheme>
 }
 
@@ -26,7 +27,7 @@ export function createEmacsClient(transport: EmacsTransport): EmacsClient {
 
   return {
     getOrgText: (nodeId: UUID): Promise<string> => {
-      reqId++
+      const id = reqId++
       return new Promise((resolve, reject) => {
         const handleMessage = (event: EmacsTransportEvent) => {
           let decoded: any // TODO: Add correct type
@@ -35,28 +36,47 @@ export function createEmacsClient(transport: EmacsTransport): EmacsClient {
           } catch {
             return
           }
-          if (decoded.id !== reqId) return
+          if (decoded.id !== id) return
           transport.removeEventListener('message', handleMessage)
           resolve(decoded.result)
         }
         transport.addEventListener('message', handleMessage)
-        transport.send(generateJsonRPC('node/getBody', reqId, { nodeId: nodeId }))
+        transport.send(generateJsonRPC('node/getBody', id, { nodeId: nodeId }))
+      })
+    },
+    deleteNode: (nodeFile: string): Promise<void> => {
+      const id = reqId++
+      return new Promise((resolve, reject) => {
+        const handleMessage = (event: EmacsTransportEvent) => {
+          let decoded: any
+          try { decoded = JSON.parse(event.data) }
+          catch { return }
+          if (decoded.id !== id) return
+          transport.removeEventListener('message', handleMessage)
+          if (decoded.error) {
+            reject(new Error(decoded.error.message))
+            return
+          }
+          resolve()
+        }
+        transport.addEventListener('message', handleMessage)
+        transport.send(generateJsonRPC('node/delete', id, { nodeFile: nodeFile }))
       })
     },
     getTheme: (): Promise<EmacsTheme> => {
-      reqId++
+      const id = reqId++
       return new Promise((resolve, reject) => {
         const handleMessage = (event: EmacsTransportEvent) => {
           let decoded: any
           try {
             decoded = JSON.parse(event.data)
           } catch { return }
-          if (decoded.id !== reqId) return
+          if (decoded.id !== id) return
           transport.removeEventListener('message', handleMessage)
           resolve(decoded.result)
         }
         transport.addEventListener('message', handleMessage)
-        transport.send(generateJsonRPC('theme/get', reqId))
+        transport.send(generateJsonRPC('theme/get', id))
       })
     },
   }
