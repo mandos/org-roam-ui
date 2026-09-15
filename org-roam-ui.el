@@ -648,13 +648,13 @@ from all other links."
     (if org-roam-ui-sync-theme
       (if (boundp 'doom-themes--colors)
         (let*
-          ((colors (butlast doom-themes--colors (- (length doom-themes--colors) 25)))
-            doom-theme-colors)
-          (progn
-            (dolist (color colors)
-              (push
-                (cons (car color) (car (cdr color)))
-                doom-theme-colors)))
+          ((colors '(magenta violet blue cyan teal green yellow orange red bg fg base0 base1 base2 base3 base4 base5 base6 base7 base8))
+            (doom-theme-colors (delq nil
+                                 (mapcar (lambda (name)
+                                           (let ((entry (assq name doom-themes--colors)))
+                                             (when entry
+                                               (cons name (cadr entry)))))
+                                   colors))))
           (setq ui-theme `((name . ,(concat "doom emacs ("(symbol-name doom-theme) ")"))
                             (colors . ,doom-theme-colors))))
         (setq ui-theme `((name . "emacs")
