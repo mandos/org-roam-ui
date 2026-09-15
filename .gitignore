@@ -7,6 +7,7 @@
 
 # testing
 /coverage
+/test-runtime
 
 # next.js
 /.next/
@@ -33,5 +34,4 @@ yarn-error.log*
 .vercel
 
 #logs
-
 /.log/

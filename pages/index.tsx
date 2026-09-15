@@ -161,6 +161,7 @@ export function GraphPage() {
     const oldNodeById = nodeByIdRef.current
     tagsRef.current = orgRoamGraphData.tags ?? []
     const importNodes = orgRoamGraphData.nodes ?? []
+    log.debug("Imported nodes", importNodes)
     const importLinks = orgRoamGraphData.links ?? []
     const nodesByFile = importNodes.reduce<NodesByFile>((acc, node) => {
       return {
@@ -1102,15 +1103,12 @@ export const Graph = function (props: GraphProps) {
     if (!links) {
       return {}
     }
-    const debug = Object.fromEntries(
+    return Object.fromEntries(
       [
         centralHighlightedNode.current?.id! as string,
         ...links.flatMap((link) => [link.source, link.target]),
       ].map((nodeId) => [nodeId, {}]),
     )
-    // TODO: Remove debug
-    log.debug(debug)
-    return debug
   }, [centralHighlightedNode.current, filteredLinksByNodeIdRef.current])
 
 

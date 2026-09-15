@@ -154,10 +154,10 @@ export const PreviewLink = (props: LinkProps) => {
   const emacsClient = useEmacs()
 
   const extraNoteStyle = outline ? outlineNoteStyle : viewerNoteStyle
-  log.debug(previewNode)
+  // log.debug(previewNode)
   const getText = () => {
     emacsClient.getOrgText(id).then((res) => {
-      log.debug(res)
+      // log.debug(res)
       setOrgText(res)
     }).catch((e) => {
       log.error(e)

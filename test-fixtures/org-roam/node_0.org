@@ -1,0 +1,6 @@
+:PROPERTIES:
+:ID:       dcf0cc53-9404-479e-88ed-b7d0f47e3ac7
+:END:
+#+title: node-0
+
+Test note

@@ -181,6 +181,24 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
       :on-message #'org-roam-ui--ws-on-message
       :on-close #'org-roam-ui--ws-on-close)))
 
+(defun org-roam-ui-init-dev ()
+  "Prepare environment for development."
+  (interactive)
+  (let* ((test-runtime-dir (file-name-concat org-roam-ui-root-dir "test-runtime"))
+          (test-fixtures-dir (file-name-concat org-roam-ui-root-dir "test-fixtures")))
+    (when (file-directory-p test-runtime-dir)
+      (delete-directory test-runtime-dir t nil))
+    (copy-directory (file-name-concat test-fixtures-dir "org-roam") (file-name-concat test-runtime-dir "org-roam") t t)
+    (setq org-roam-directory (file-name-concat test-runtime-dir "org-roam"))
+    (setq org-roam-db-location (file-name-concat test-runtime-dir "org-roam.db"))
+    (org-roam-db-sync)
+    (when org-roam-ws-server
+      (websocket-server-close org-roam-ws-server))
+    (when org-roam-ui-ws-server
+      (websocket-server-close org-roam-ui-ws-server))
+    (org-roam-server-start)
+    (org-roam-dev-server-start)))
+
 (defun org-roam-dev-server-start ()
   "Start Websocket server (dev version)."
   (interactive)
