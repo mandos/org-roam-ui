@@ -184,8 +184,10 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
 (defun org-roam-ui-init-dev ()
   "Prepare environment for development."
   (interactive)
-  (let* ((test-runtime-dir (file-name-concat org-roam-ui-root-dir "test-runtime"))
-          (test-fixtures-dir (file-name-concat org-roam-ui-root-dir "test-fixtures")))
+  ;; TODO I'm not sure if it's correct but at least works when I reevaluate file. Good for now, fix later.
+  (let* ((root-dir (file-name-directory (expand-file-name  buffer-file-name)))
+          (test-runtime-dir (file-name-concat root-dir "test-runtime"))
+          (test-fixtures-dir (file-name-concat root-dir "test-fixtures")))
     (when (file-directory-p test-runtime-dir)
       (delete-directory test-runtime-dir t nil))
     (copy-directory (file-name-concat test-fixtures-dir "org-roam") (file-name-concat test-runtime-dir "org-roam") t t)
