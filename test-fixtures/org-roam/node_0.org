@@ -3,4 +3,81 @@
 :END:
 #+title: node-0
 
-Test note
+This is the *formatting showcase* node. It mixes /italic/, *bold*, _underline_,
++strikethrough+, =verbatim= and ~code~ in one paragraph.
+
+* Headline level one
+
+Some text under the first headline.
+
+** Headline level two
+
+And a nested one, so the outline has depth.
+
+*** Headline level three
+
+The deepest headline in this fixture.
+
+* Lists
+
+- first bullet
+- second bullet
+  - nested bullet
+  - another nested bullet
+- third bullet
+
+1. first numbered item
+2. second numbered item
+3. third numbered item
+
+- [ ] unchecked task
+- [X] checked task
+
+- term :: a description list entry
+- other term :: another description list entry
+
+* Code
+
+#+begin_src emacs-lisp
+(defun node-0-greeting (name)
+  "Say hello to NAME."
+  (message "Hello, %s!" name))
+#+end_src
+
+#+begin_src javascript
+const nodeZero = { id: 0, title: 'node-0' }
+console.log(nodeZero.title)
+#+end_src
+
+* Quote and example
+
+#+begin_quote
+A quoted paragraph, useful for checking blockquote rendering.
+#+end_quote
+
+#+begin_example
+raw example text
+  with preserved    spacing
+#+end_example
+
+* Table
+
+| Node | Links to | Kind     |
+|------+----------+----------|
+| 1    | node-0   | backlink |
+| 2    | node-0   | backlink |
+| 10   | node-1   | backlink |
+
+* Links
+
+An external link: [[https://orgmode.org][Org mode homepage]].
+
+A bare URL: https://github.com/org-roam/org-roam-ui
+
+* Math
+
+Inline math $E = mc^2$ and a display block:
+
+\begin{equation}
+a^2 + b^2 = c^2
+\end{equation}

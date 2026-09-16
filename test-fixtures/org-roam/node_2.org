@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       01aec1dd-0627-4718-85bd-76f4cfe50719
+:END:
+#+title: node-2
+
+Node two talks about bicycles. Two wheels, a bell and a very squeaky chain.
+
+Linked from here: [[id:dcf0cc53-9404-479e-88ed-b7d0f47e3ac7][node-0]]

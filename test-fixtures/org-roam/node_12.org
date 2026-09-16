@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       db813d06-3dc5-4289-b9bf-9151cc6c2399
+:END:
+#+title: node-12
+
+Node twelve talks about a wicker basket, carried back from the orchard full.
+
+Linked from here: [[id:7e23a367-cb54-48f4-94c8-3a6a3d3a0762][node-1]]

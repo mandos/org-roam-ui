@@ -14,10 +14,12 @@
 
 # production
 /build
+*.tsbuildinfo
 
 # misc
 .DS_Store
 *.pem
+/.claude
 
 # debug
 npm-debug.log*

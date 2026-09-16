@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       7e23a367-cb54-48f4-94c8-3a6a3d3a0762
+:END:
+#+title: node-1
+
+Node one talks about apples. Red, crisp and easy to tell apart from the rest.
+
+Linked from here: [[id:dcf0cc53-9404-479e-88ed-b7d0f47e3ac7][node-0]]

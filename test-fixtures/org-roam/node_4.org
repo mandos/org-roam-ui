@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       058d2afc-cccd-4984-b55a-ed59bc3d91d9
+:END:
+#+title: node-4
+
+Node four talks about a thunderstorm. Rain, wind and one very loud clap.
+
+Linked from here: [[id:dcf0cc53-9404-479e-88ed-b7d0f47e3ac7][node-0]]

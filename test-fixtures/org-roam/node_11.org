@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       463c43b3-3053-43c9-808d-0d758169e29d
+:END:
+#+title: node-11
+
+Node eleven talks about an orchard ladder, tall enough to reach the top branch.
+
+Linked from here: [[id:7e23a367-cb54-48f4-94c8-3a6a3d3a0762][node-1]]

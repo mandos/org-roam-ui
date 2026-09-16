@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       b76e92e1-ecd0-4cf0-8d62-c34a3bee1d6d
+:END:
+#+title: node-5
+
+Node five talks about a jar of honey. Sticky, golden and impossible to close.
+
+Linked from here: [[id:dcf0cc53-9404-479e-88ed-b7d0f47e3ac7][node-0]]

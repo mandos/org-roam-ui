@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       b91d3a84-932f-423c-a3da-06a9af7e51b3
+:END:
+#+title: node-3
+
+Node three talks about lighthouses. It stands on a cliff and blinks all night.
+
+Linked from here: [[id:dcf0cc53-9404-479e-88ed-b7d0f47e3ac7][node-0]]

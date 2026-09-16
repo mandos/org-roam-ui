@@ -1,0 +1,8 @@
+:PROPERTIES:
+:ID:       790189e1-9cea-461f-a68d-29b7c61aa68e
+:END:
+#+title: node-10
+
+Node ten talks about a cider press, the next step after the apples.
+
+Linked from here: [[id:7e23a367-cb54-48f4-94c8-3a6a3d3a0762][node-1]]
