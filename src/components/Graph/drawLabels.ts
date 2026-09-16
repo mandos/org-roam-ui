@@ -1,10 +1,10 @@
-import { OrgRoamNode } from '../../api'
+import { OrgRoamNode } from '@/api'
 import { NodeObject } from 'force-graph'
-import { initialVisuals } from '../config'
-import { LinksByNodeId } from '../../pages'
+import { initialVisuals } from '@/components/config'
+import { LinksByNodeId } from '@/pages'
 import wrap from 'word-wrap'
-import { nodeSize } from '../../util/nodeSize'
-import { hexToRGBA } from '../../util/hexToRGBA'
+import { nodeSize } from '@/util/nodeSize'
+import { hexToRGBA } from '@/util/hexToRGBA'
 
 export interface drawLabelsProps {
   labelBackgroundColor: string
@@ -66,8 +66,8 @@ export function drawLabels(props: drawLabelsProps) {
 
   const fadeFactor = Math.min(
     5 * (globalScale - visuals.labelScale) +
-      2 *
-        Math.pow(Math.min(links.length, visuals.labelDynamicDegree), visuals.labelDynamicStrength),
+    2 *
+    Math.pow(Math.min(links.length, visuals.labelDynamicDegree), visuals.labelDynamicStrength),
     1,
   )
   if (fadeFactor < 0.01 && !isHighlighty) {
@@ -87,7 +87,7 @@ export function drawLabels(props: drawLabelsProps) {
         previouslyHighlightedNodes,
         visuals,
       })) /
-      Math.pow(globalScale, visuals.nodeZoomSize),
+    Math.pow(globalScale, visuals.nodeZoomSize),
   )
   const fontSize = visuals.labelFontSize / Math.cbrt(Math.pow(globalScale, visuals.nodeZoomSize))
   //   ? Math.max((visuals.labelFontSize * nodeS) / 2, (visuals.labelFontSize * nodeS) / 3)
