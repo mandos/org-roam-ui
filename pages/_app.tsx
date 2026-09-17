@@ -105,8 +105,8 @@ function ChakraThemeProvider(props: any) {
         },
         // TODO Maybe I should get alt bg and fg from Emacs?
         alt: {
-          100: themeColors['base1'],
-          900: themeColors['base7'],
+          100: themeColors['bg-alt'],
+          900: themeColors['fg-alt'],
         },
       },
       shadows: {

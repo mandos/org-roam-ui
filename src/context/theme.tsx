@@ -8,7 +8,7 @@ const log = createLogger("theme")
 
 const COLOR_KEYS = [
   'magenta', 'violet', 'blue', 'cyan', 'teal', 'green', 'yellow', 'orange', 'red',
-  'bg', 'fg',
+  'bg', 'bg-alt', 'fg', 'fg-alt',
   'base0', 'base1', 'base2', 'base3', 'base4', 'base5', 'base6', 'base7', 'base8'] as const
 
 export type ColorPalette = {

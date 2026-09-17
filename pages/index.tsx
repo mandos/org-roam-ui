@@ -20,7 +20,6 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 import useUndo from 'use-undo'
 import { OrgRoamGraphReponse, OrgRoamLink, OrgRoamNode } from '../api'
 import {
-  algos,
   initialBehavior,
   initialColoring,
   initialFilter,
