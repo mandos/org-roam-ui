@@ -25,14 +25,27 @@ export class RpcError extends Error {
   readonly code: number
   readonly data?: unknown
 
-  // TODO: options are added in TS 4.6.2, add it when we bump version
+  // TODO: Options are added in TS 4.6.2, add it when we bump version
   constructor(error: RpcErrorObject) {
     super(error.message)
     this.code = error.code
     this.data = error.data
 
-    this.name = "RpcError"
-    Object.setPrototypeOf(this, RpcError.prototype)
+    // NOTE: Once again analyse solution with subclasses and instanceof
+    Object.setPrototypeOf(this, new.target.prototype)
+    this.name = new.target.name
+  }
+}
+
+export class RpcTimeoutError extends RpcError {
+  constructor(timeoutValue: number) {
+    super({ message: `Request to WebSocket server failed because of timeout (${timeoutValue} ms)`, code: -32000 })
+  }
+}
+
+export class RpcCancelledError extends RpcError {
+  constructor() {
+    super({ message: `Request to WebSocket server was cancelled`, code: -32001 })
   }
 }
 

@@ -65,8 +65,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [highlightColor])
 
   useEffect(() => {
-    const themePromise = emacsClient.getTheme()
-    themePromise.then((res) => {
+    emacsClient.getTheme().then((res) => {
       setEmacsTheme([res.name, sanitizeColorPalette(res.colors)])
     }).catch((e) => {
       setEmacsTheme(
