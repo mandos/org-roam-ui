@@ -1,4 +1,4 @@
-import { OrgRoamNode } from '../api'
+import { OrgRoamNode } from '@/emacs/api'
 import { initialColoring, initialVisuals } from '../components/config'
 import { LinksByNodeId } from '../pages'
 import { createLogger } from '@/utils/logger'

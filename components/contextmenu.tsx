@@ -28,8 +28,7 @@ import {
   MinusIcon,
 } from '@chakra-ui/icons'
 
-import { OrgRoamGraphReponse, OrgRoamLink, OrgRoamNode } from '../api'
-import { openNodeInEmacs, createNodeInEmacs } from '../util/webSocketFunctions'
+import { OrgRoamNode } from '@/emacs/api'
 import { BiNetworkChart } from 'react-icons/bi'
 import { TagMenu } from './TagMenu'
 import { initialFilter, TagColors } from './config'
@@ -46,7 +45,6 @@ export default interface ContextMenuProps {
   handleLocal: (node: OrgRoamNode, add: string) => void
   menuClose: () => void
   scope: { nodeIds: string[] }
-  webSocket: any
   setPreviewNode: any
   setTagColors: any
   tagColors: TagColors
@@ -56,8 +54,6 @@ export default interface ContextMenuProps {
 
 export const ContextMenu = (props: ContextMenuProps) => {
 
-  const toast = useToast()
-
   const {
     background,
     target,
@@ -66,7 +62,6 @@ export const ContextMenu = (props: ContextMenuProps) => {
     handleLocal,
     menuClose,
     scope,
-    webSocket,
     setPreviewNode,
     setTagColors,
     tagColors,
@@ -77,6 +72,7 @@ export const ContextMenu = (props: ContextMenuProps) => {
   const copyRef = useRef<any>()
   const localRef = useRef<HTMLDivElement>(null)
   const emacsClient = useEmacs();
+  const toast = useToast()
   return (
     <div ref={localRef}>
       <>
@@ -123,12 +119,12 @@ export const ContextMenu = (props: ContextMenuProps) => {
                 {!target?.properties?.FILELESS ? (
                   <MenuItem
                     icon={<EditIcon />}
-                    onClick={() => openNodeInEmacs(target as OrgRoamNode, webSocket)}
+                    onClick={() => emacsClient.openNode(target as OrgRoamNode).then().catch(() => log.error("Could not open node: ", target))}
                   >
                     Open in Emacs
                   </MenuItem>
                 ) : (
-                  <MenuItem icon={<AddIcon />} onClick={() => createNodeInEmacs(target, webSocket)}>
+                  <MenuItem icon={<AddIcon />} onClick={() => emacsClient.createNode(target as OrgRoamNode).then().catch(() => log.error("Could not create node: ", target))}>
                     Create node
                   </MenuItem>
                 )}

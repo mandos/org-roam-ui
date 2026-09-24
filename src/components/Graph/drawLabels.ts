@@ -1,4 +1,4 @@
-import { OrgRoamNode } from '@/api'
+import { OrgRoamNode } from '@/emacs/api'
 import { NodeObject } from 'force-graph'
 import { initialVisuals } from '@/components/config'
 import { LinksByNodeId } from '@/pages'

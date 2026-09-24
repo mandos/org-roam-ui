@@ -12,8 +12,8 @@ import type {
 import { GraphData, NodeObject } from 'force-graph'
 
 // Not sure about this dependencies, maybe should be in different places
-import { EmacsVariables, LinksByNodeId, NodeById, Scope } from '@/pages'
-import { OrgRoamLink, OrgRoamNode } from '@/api'
+import { LinksByNodeId, NodeById, Scope } from '@/pages'
+import { EmacsVariables, OrgRoamLink, OrgRoamNode } from '@/emacs/api'
 
 // New structure
 import { drawLabels } from '@/components/Graph/drawLabels'
@@ -23,12 +23,13 @@ import { useTheme as useAppTheme } from '@/context/theme'
 import { algos, colorList, initialBehavior, initialColoring, initialFilter, initialLocal, initialMouse, initialPhysics, initialVisuals } from '@/components/config'
 import { findNthNeighbors } from '@/util/findNthNeighbour'
 import { normalizeLinkEnds } from '@/util/normalizeLinkEnds'
-import { openNodeInEmacs } from '@/util/webSocketFunctions'
 import { getThemeColor } from '@/util/getThemeColor'
 import { nodeSize } from '@/util/nodeSize'
 import { getNodeColor } from '@/util/getNodeColor'
 import { getLinkColor } from '@/util/getLinkColor'
 import { isLinkRelatedToNode } from '@/util/isLinkRelatedToNode'
+import { useEmacs } from '@/context/emacs'
+import { createLogger } from '@/utils/logger'
 
 const d3promise = import('d3-force-3d')
 
@@ -56,7 +57,6 @@ export interface GraphProps {
   local: typeof initialLocal
   scope: Scope
   setScope: any
-  webSocket: any
   tagColors: { [tag: string]: string }
   setPreviewNode: any
   sidebarHighlightedNode: OrgRoamNode | null
@@ -74,6 +74,8 @@ export interface GraphProps {
   coloring: typeof initialColoring
 }
 
+const log = createLogger("graph")
+
 export const Graph = function (props: GraphProps) {
   const {
     graphRef,
@@ -90,7 +92,6 @@ export const Graph = function (props: GraphProps) {
     scope,
     local,
     setScope,
-    webSocket,
     tagColors,
     setPreviewNode,
     sidebarHighlightedNode,
@@ -110,6 +111,7 @@ export const Graph = function (props: GraphProps) {
   const [hoverNode, setHoverNode] = useState<NodeObject | null>(null)
 
   const theme = useTheme()
+  const emacsClient = useEmacs()
   const appTheme = useAppTheme()
 
   // TODO: Remove after creating new color managment layer
@@ -126,7 +128,7 @@ export const Graph = function (props: GraphProps) {
         break
       }
       case mouse.follow: {
-        openNodeInEmacs(node, webSocket)
+        emacsClient.openNode(node).then().catch(() => log.error("Could not open node: ", node))
         break
       }
       case mouse.context: {

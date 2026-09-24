@@ -31,7 +31,7 @@ import React, { createContext, ReactNode, useMemo } from 'react'
 import { OrgImage } from '../components/Sidebar/OrgImage'
 import { Section } from '../components/Sidebar/Section'
 import { NoteContext } from './NoteContext'
-import { OrgRoamLink, OrgRoamNode } from '../api'
+import { OrgRoamLink, OrgRoamNode } from '@/emacs/api'
 
 // @ts-expect-error non-ESM unified means no types
 import { toString } from 'hast-util-to-string'

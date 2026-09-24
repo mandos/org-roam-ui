@@ -1,7 +1,7 @@
 import React from 'react'
 import { initialFilter, TagColors } from '../config'
 import { NodeObject } from 'force-graph'
-import { OrgRoamNode } from '../../api'
+import { OrgRoamNode } from '@/emacs/api'
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
 import { Flex, Tag, TagLabel, TagRightIcon } from '@chakra-ui/react'
 

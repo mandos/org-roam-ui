@@ -157,29 +157,15 @@ Format as, i.e. with double backslashes for a single backslash:
 (defvar org-roam-ui--ws-current-node nil
   "Var to keep track of which node you are looking at.")
 
-(defvar org-roam-ui-ws-socket nil
+(defvar org-roam-ws-socket nil
   "The websocket for org-roam-ui.")
 
 (defvar org-roam-ui--window nil
   "The window for displaying nodes opened from within ORUI.
 This is mostly to prevent issues with EXWM and the Webkit browser.")
 
-(defvar org-roam-ui-ws-server nil
-  "The websocket server for org-roam-ui.")
-
 (defvar org-roam-ws-server nil
   "The websocket server for org-roam-ui.")
-
-(defun org-roam-server-start ()
-  "Start Websocket server."
-  (interactive)
-  (setq org-roam-ui-ws-server
-    (websocket-server
-      35903
-      :host 'local
-      :on-open #'org-roam-ui--ws-on-open
-      :on-message #'org-roam-ui--ws-on-message
-      :on-close #'org-roam-ui--ws-on-close)))
 
 (defun org-roam-ui-init-dev ()
   "Prepare environment for development."
@@ -194,20 +180,25 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
     (setq org-roam-directory (file-name-concat test-runtime-dir "org-roam"))
     (setq org-roam-db-location (file-name-concat test-runtime-dir "org-roam.db"))
     (org-roam-db-sync)
-    (when org-roam-ws-server
-      (websocket-server-close org-roam-ws-server))
-    (when org-roam-ui-ws-server
-      (websocket-server-close org-roam-ui-ws-server))
-    (org-roam-server-start)
-    (org-roam-dev-server-start)))
+    (org-roam-server-restart)))
 
-(defun org-roam-dev-server-start ()
-  "Start Websocket server (dev version)."
+(defun org-roam-server-start ()
+  "Start Websocket server."
   (interactive)
   (setq org-roam-ws-server
     (websocket-server
       35904
       :host 'local
+      :on-open (lambda (ws)
+                 (progn
+                   (setq org-roam-ws-socket ws)
+                   (org-roam-ui--send-variables)
+                   (org-roam-ui--send-graphdata)
+                   (when org-roam-ui-update-on-save
+                     (add-hook 'after-save-hook #'org-roam-ui--on-save))
+                   (message "Connection established with org-roam-ui")
+                   (when org-roam-ui-follow
+                     (org-roam-ui-follow-mode 1))))
       :on-message (lambda (ws frame)
                     (let* ((text (websocket-frame-text frame))
                             (msg (json-parse-string text :object-type 'alist))
@@ -219,24 +210,41 @@ This is mostly to prevent issues with EXWM and the Webkit browser.")
                       ;; TODO: Check if we really get JSON-RPC request
                       (cond
                         ((string= method "node/getBody")
-                          (org-roam-ui--send-node-body (alist-get 'nodeId params) reqId ws))
+                          (org-roam-ui--send-node-body ws (alist-get 'nodeId params) reqId))
                         ((string= method "node/delete")
-                          (org-roam-ui--on-msg-delete-node (alist-get 'nodeFile params) reqId ws))
+                          (org-roam-ui--on-msg-delete-node ws (alist-get 'nodeFile params) reqId))
+                        ((string= method "node/open")
+                          (org-roam-ui--on-msg-open-node ws params reqId))
+                        ((string= method "node/create")
+                          (org-roam-ui--on-msg-create-node ws params reqId))
                         ((string= method "theme/get")
-                          (org-roam-ui--sync-theme reqId ws))
+                          (org-roam-ui--sync-theme ws reqId))
                         (t
                           (message
-                            "Error during receiving a message from websocket client (wrong request format or unknown method)"))))))))
+                            "Error during receiving a message from websocket client (wrong request format or unknown method)")))))
+      :on-close (lambda (ws)
+                  (remove-hook 'after-save-hook #'org-roam-ui--on-save)
+                  (org-roam-ui-follow-mode -1)
+                  (message "Connection with org-roam-ui closed.")))))
 
-(defun org-roam-ui--sync-theme (reqId ws)
-  "Sync your current Emacs theme with org-roam-ui."
+(defun org-roam-server-stop ()
+  "Stop websocket server (if it's running)."
   (interactive)
-  (org-roam-server--send-text ws
-    (json-encode `((jsonrpc . "2.0")
-                    (id . ,reqId)
-                    (result . ,(org-roam-ui--update-theme))))))
+  (when org-roam-ws-server
+    (websocket-server-close org-roam-ws-server)))
 
-(defun org-roam-ui--on-msg-delete-node (nodeFile reqId ws)
+(defun org-roam-server-restart ()
+  "Restart Websocket server."
+  (interactive)
+  (org-roam-server-stop)
+  (org-roam-server-start))
+
+(defun org-roam-ui--sync-theme (ws reqId)
+  "Sync your current Emacs theme with org-roam-ui.
+REQID should be id for response, WS is websocket"
+  (org-roam-server--send-json-rpc-response ws reqId (org-roam-ui--update-theme)))
+
+(defun org-roam-ui--on-msg-delete-node (ws nodeFile reqId)
   "Delete a node from file NODEFILE and send response about result.
 
 Response is sent through websocket WS using REQID which should be request
@@ -249,36 +257,15 @@ TODO: Be able to delete individual nodes, for now it's only whole file."
       (:success
         (progn
           (message "Deleted %s" nodeFile)
-          (org-roam-server--send-text ws
-            (json-encode `((jsonrpc . "2.0")
-                            (id . ,reqId)
-                            (result . "done"))))
+          (org-roam-server--send-json-rpc-response ws reqId "done")
           (org-roam-db-sync)
           (org-roam-ui--send-graphdata)))
-      (file-error (org-roam-server--send-text ws
-                    (json-encode `((jsonrpc . "2.0")
-                                    (id . ,reqId)
-                                    (error . ((code . 100)
-                                               (message . ,(error-message-string e)))))))))
-    (org-roam-server--send-text ws
-      (json-encode `((jsonrpc . "2.0")
-                      (id . ,reqId)
-                      (error . ((code . 101)
-                                 (message . ,(concat "File: " nodeFile " not exists so it can not be deleted.")))))))))
-
-(defun org-roam-both-servers-start ()
-  "For now start both my Websocket servers."
-  (interactive)
-  (org-roam-server-start)
-  (org-roam-dev-server-start)
-  )
-
-(defun org-roam-both-servers-restart ()
-  "Restart both Websocket servers."
-  (interactive)
-  (websocket-server-close org-roam-ui-ws-server)
-  (websocket-server-close org-roam-ws-server)
-  (org-roam-both-servers-start))
+      (file-error (org-roam-server--send-json-rpc-error ws reqId
+                    '((code . 100)
+                       (message . ,(error-message-string e))))))
+    (org-roam-server--send-json-rpc-error ws reqId
+      '((code . 101)
+         (message . ,(concat "File: " nodeFile " not exists so it can not be deleted."))))))
 
 ;;;###autoload
 (define-minor-mode
@@ -295,46 +282,21 @@ This serves the web-build and API over HTTP."
    ;;; else add them
       (setq-local httpd-port org-roam-ui-port)
       (setq httpd-root org-roam-ui-app-build-dir)
-      (org-roam-server-start)
+      (org-roam-server-restart)
       (httpd-start)
       (when org-roam-ui-open-on-start (org-roam-ui-open)))
     (t
       (progn
-        (websocket-server-close org-roam-ui-ws-server)
         (httpd-stop)
+        (websocket-server-close org-roam-ws-server)
         (remove-hook 'after-save-hook #'org-roam-ui--on-save)
         (org-roam-ui-follow-mode -1)))))
 
-(defun org-roam-ui--ws-on-open (ws)
-  "Open the websocket WS to org-roam-ui and send initial data."
-  (progn
-    (setq org-roam-ui-ws-socket ws)
-    (org-roam-ui--send-variables org-roam-ui-ws-socket)
-    (org-roam-ui--send-graphdata)
-    (when org-roam-ui-update-on-save
-      (add-hook 'after-save-hook #'org-roam-ui--on-save))
-    (message "Connection established with org-roam-ui")
-    (when org-roam-ui-follow
-      (org-roam-ui-follow-mode 1))))
-
-(defun org-roam-ui--ws-on-message (_ws frame)
-  "Functions to run when the org-roam-ui server receives a message.
-Takes _WS and FRAME as arguments."
-  (let* ((msg (json-parse-string
-                (websocket-frame-text frame) :object-type 'alist))
-          (command (alist-get 'command msg))
-          (data (alist-get 'data msg)))
-    (cond ((string= command "open")
-            (org-roam-ui--on-msg-open-node data))
-      ((string= command "create")
-        (org-roam-ui--on-msg-create-node data))
-      (t
-        (message
-          "Something went wrong when receiving a message from org-roam-ui")))))
-
-(defun org-roam-ui--on-msg-open-node (data)
-  "Open a node when receiving DATA from the websocket."
-  (let* ((id (alist-get 'id data))
+(defun org-roam-ui--on-msg-open-node (ws data reqId)
+  "Open a node when receiving DATA from the websocket.
+Send response through WS with given REQID.
+TODO: Handle errors and send that case send error response."
+  (let* ((id (alist-get 'nodeId data))
           (node (org-roam-node-from-id id))
           (pos (org-roam-node-point node))
           (buf (find-file-noselect (org-roam-node-file node))))
@@ -354,23 +316,23 @@ Takes _WS and FRAME as arguments."
     (set-window-buffer org-roam-ui--window buf)
     (select-window org-roam-ui--window)
     (goto-char pos)
-    (run-hook-with-args 'org-roam-ui-after-open-node-functions id)))
+    (run-hook-with-args 'org-roam-ui-after-open-node-functions id))
+  (org-roam-server--send-json-rpc-response ws reqId "done"))
 
 
-(defun org-roam-ui--on-msg-create-node (data)
-  "Create a node when receiving DATA from the websocket."
+(defun org-roam-ui--on-msg-create-node (ws data reqId)
+  "Create a node when receiving DATA from the websocket.
+Send response through WS with given REQID.
+TODO: Handle errors and send that case send error response."
   (progn
-    (if (and (fboundp #'orb-edit-note) (alist-get 'ROAM_REFS data))
-      (orb-edit-note (alist-get 'id data)))
+    (if (and (fboundp #'orb-edit-note) (alist-get 'ref data))
+      (orb-edit-note (alist-get 'nodeId data)))
     (org-roam-capture-
       :node (org-roam-node-create :title (alist-get 'title data))
-      :props '(:finalize find-file))))
+      :props '(:finalize find-file))
+    ;;
+    (org-roam-server--send-json-rpc-response ws reqId "done")))
 
-(defun org-roam-ui--ws-on-close (_websocket)
-  "What to do when _WEBSOCKET to org-roam-ui is closed."
-  (remove-hook 'after-save-hook #'org-roam-ui--on-save)
-  (org-roam-ui-follow-mode -1)
-  (message "Connection with org-roam-ui closed."))
 
 (defun org-roam-ui--get-text (id)
   "Retrieve the text from org-node ID."
@@ -386,7 +348,7 @@ Takes _WS and FRAME as arguments."
         (org-narrow-to-element))
       (buffer-substring-no-properties (buffer-end -1) (buffer-end 1)))))
 
-(defun org-roam-ui--send-node-body (nodeId reqId ws)
+(defun org-roam-ui--send-node-body (ws nodeId reqId)
   "Send the text of the org-roam node identified by NODEID.
 NODEID is the org-roam node id whose text is looked up via
 `org-roam-ui--get-text'.  REQID is the JSON-RPC request id echoed
@@ -400,20 +362,34 @@ the response is written to."
                         (result . ,text)))))
     (org-roam-server--send-text ws payload)))
 
-(defun org-roam-server--json-rpc-response (id result)
-  "Generate response.")
+(defun org-roam-server--send-json-rpc-response (ws id result)
+  "Send response through websocket WS for request with id ID.
+Body of response is RESULT"
+  (org-roam-server--send-text ws (json-encode `((jsonrpc . "2.0")
+                                                 (id . ,id)
+                                                 (result . ,result)))))
+
+(defun org-roam-server--send-json-rpc-error (ws id error)
+  "Send response through websocket WS for request with id ID.
+ERROR is error object, see JSON-RPC spec."
+  (org-roam-server--send-text ws (json-encode `((jsonrpc . "2.0")
+                                                 (id . ,id)
+                                                 (error . ,error)))))
+
+(defun org-roam-server--send-json-rpc-notification (ws method params)
+  "Send notification (request without ID) through websocket WS.
+METHOD is string and PARAMS is structured value (see JSON-RPC spec)."
+  (org-roam-server--send-text ws (json-encode `((jsonrpc . "2.0")
+                                                 (method . ,method)
+                                                 (params . ,params)))))
 
 (defun org-roam-server--send-text (ws payload)
-  "Send text through Websocket"
+  "Send text through websocket WS.
+PAYLOAD is json structure defined in JSON-RPC spec."
   (message "[oru-dev ->] %s" payload)
   (websocket-send-text ws payload))
 
-;; TODO: Remove it after testing if WS version have all I need
-;; (defservlet* node/:id text/plain ()
-;;   "Servlet for accessing node content."
-;;   (insert (org-roam-ui--get-text (org-link-decode id)))
-;;   (httpd-send-header t "text/plain" 200 :Access-Control-Allow-Origin "*"))
-
+;; TODO Move this functionality to websockets
 (defservlet* img/:file text/plain ()
   "Servlet for accessing images found in org-roam files."
   (progn
@@ -425,7 +401,7 @@ the response is written to."
 
 TODO: Make this only send the changes to the graph data, not the complete graph."
   (when (org-roam-buffer-p)
-    (org-roam-ui--send-variables org-roam-ui-ws-socket)
+    (org-roam-ui--send-variables)
     (org-roam-ui--send-graphdata)))
 
 (defun org-roam-ui--check-orb-keywords ()
@@ -563,9 +539,7 @@ unchanged."
     (when old
       (message "[org-roam-ui] You are not using the latest version of org-roam.
 This database model won't be supported in the future, please consider upgrading."))
-    (websocket-send-text org-roam-ui-ws-socket (json-encode
-                                                 `((type . "graphdata")
-                                                    (data . ,response))))))
+    (org-roam-server--send-json-rpc-notification org-roam-ws-socket "graph/update" response)))
 
 
 (defun org-roam-ui--filter-citations (links)
@@ -650,16 +624,14 @@ from all other links."
 
 (defun org-roam-ui--update-current-node ()
   "Send the current node data to the web-socket."
-  (when (and (websocket-openp org-roam-ui-ws-socket)
+  (when (and (websocket-openp org-roam-ws-socket)
           (org-roam-buffer-p)
           (buffer-file-name (buffer-base-buffer)))
     (let* ((node (org-roam-id-at-point)))
       (unless (string= org-roam-ui--ws-current-node node)
         (setq org-roam-ui--ws-current-node node)
-        (websocket-send-text org-roam-ui-ws-socket
-          (json-encode `((type . "command")
-                          (data . ((commandName . "follow")
-                                    (id . ,node))))))))))
+        (org-roam-server--send-json-rpc-notification org-roam-ws-socket "node/follow"
+          `((id . ,node)))))))
 
 
 (defun org-roam-ui--update-theme ()
@@ -685,8 +657,8 @@ from all other links."
     ui-theme))
 
 
-(defun org-roam-ui--send-variables (ws)
-  "Send miscellaneous org-roam variables through the websocket WS."
+(defun org-roam-ui--send-variables ()
+  "Send miscellaneous org-roam variables through the websocket."
   (let ((daily-dir (if (boundp 'org-roam-dailies-directory)
                      (if (file-name-absolute-p org-roam-dailies-directory)
                        (expand-file-name org-roam-dailies-directory)
@@ -701,20 +673,17 @@ from all other links."
                             org-attach-use-inheritance
                             nil))
          (sub-dirs (org-roam-ui-find-subdirectories)))
-    (websocket-send-text org-roam-ui-ws-socket
-      (json-encode
-        `((type . "variables")
-           (data .
-             (("subDirs".
-                ,sub-dirs)
-               ("dailyDir" .
-                 ,daily-dir)
-               ("attachDir" .
-                 ,attach-dir)
-               ("useInheritance" .
-                 ,use-inheritance)
-               ("roamDir" . ,org-roam-directory)
-               ("katexMacros" . ,org-roam-ui-latex-macros))))))))
+    (org-roam-server--send-json-rpc-notification org-roam-ws-socket "variables/update"
+      `(("subDirs".
+          ,sub-dirs)
+         ("dailyDir" .
+           ,daily-dir)
+         ("attachDir" .
+           ,attach-dir)
+         ("useInheritance" .
+           ,use-inheritance)
+         ("roamDir" . ,org-roam-directory)
+         ("katexMacros" . ,org-roam-ui-latex-macros)))))
 
 (defun org-roam-ui-sql-to-alist (column-names rows)
   "Convert sql result to alist for json encoding.
@@ -785,12 +754,10 @@ The SPEED in ms it takes to make the transition.
 The PADDING around the nodes in the viewport."
   (interactive)
   (if-let ((node (or id (org-roam-id-at-point))))
-    (websocket-send-text org-roam-ui-ws-socket
-      (json-encode `((type . "command")
-                      (data . ((commandName . "zoom")
-                                (id . ,node)
-                                (speed . ,speed)
-                                (padding . ,padding))))))
+    (org-roam-server--send-json-rpc-notification org-roam-ws-socket "node/zoom"
+      `((id . ,node)
+         (speed . ,speed)
+         (padding . ,padding)))
     (message "No node found.")))
 
 
@@ -800,12 +767,10 @@ The PADDING around the nodes in the viewport."
 Optionally with ID (string), SPEED (number, ms) and PADDING (number, px)."
   (interactive)
   (if-let ((node (or id (org-roam-id-at-point))))
-    (websocket-send-text org-roam-ui-ws-socket
-      (json-encode `((type . "command")
-                      (data . ((commandName . "local")
-                                (id . ,node)
-                                (speed . ,speed)
-                                (padding . ,padding))))))
+    (org-roam-server--send-json-rpc-notification org-roam-ws-socket "node/local"
+      `((id . ,node)
+         (speed . ,speed)
+         (padding . ,padding)))
     (message "No node found.")))
 
 
@@ -813,11 +778,9 @@ Optionally with ID (string), SPEED (number, ms) and PADDING (number, px)."
   "Add or remove current node to the local graph. If not in local mode, open local-graph for this node."
   (interactive)
   (if-let ((node (or id (org-roam-id-at-point))))
-    (websocket-send-text org-roam-ui-ws-socket
-      (json-encode `((type . "command")
-                      (data . ((commandName . "change-local-graph")
-                                (id . ,node)
-                                (manipulation . ,(or manipulation "add")))))))
+    (org-roam-server--send-json-rpc-notification org-roam-ws-socket "node/changeLocalGraph"
+      `((id . ,node)
+         (manipulation . ,(or manipulation "add"))))
     (message "No node found.")))
 
 ;;;###autoload
@@ -832,19 +795,10 @@ Optionally with ID (string), SPEED (number, ms) and PADDING (number, px)."
   (interactive)
   (org-roam-ui-change-local-graph id "remove"))
 
-;;;###autoload
-(defun org-roam-ui-sync-theme ()
-  "Sync your current Emacs theme with org-roam-ui."
-  (interactive)
-  (websocket-send-text org-roam-ui-ws-socket
-    (json-encode `((type . "theme")
-                    (data . ,(org-roam-ui--update-theme))))))
-
 ;;; Obsolete commands
 (define-obsolete-function-alias #'orui-open #'org-roam-ui-open "0.1")
 (define-obsolete-function-alias #'orui-node-local #'org-roam-ui-node-local "0.1")
 (define-obsolete-function-alias #'orui-node-zoom #'org-roam-ui-node-zoom "0.1")
-(define-obsolete-function-alias #'orui-sync-theme #'org-roam-ui-sync-theme "0.1")
 
 ;;;###autoload
 (define-minor-mode org-roam-ui-follow-mode

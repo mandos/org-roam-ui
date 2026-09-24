@@ -18,7 +18,14 @@ export type RpcRequest = {
   jsonrpc: '2.0',
   method: string,
   params?: Record<string, unknown> | unknown[],
-  id?: string | number
+  id: string | number
+}
+
+export type RpcNotification<T> = {
+  jsonrpc: '2.0',
+  method: string,
+  // It's NOT strictly according spec, but for now (and maybe ever) I don't need notifications without any data
+  params: T,
 }
 
 export class RpcError extends Error {

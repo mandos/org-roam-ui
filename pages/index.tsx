@@ -16,9 +16,7 @@ import React, {
 } from 'react'
 import { BiNetworkChart } from 'react-icons/bi'
 import { BsReverseLayoutSidebarInsetReverse } from 'react-icons/bs'
-import ReconnectingWebSocket from 'reconnecting-websocket'
 import useUndo from 'use-undo'
-import { OrgRoamGraphReponse, OrgRoamLink, OrgRoamNode } from '../api'
 import {
   initialBehavior,
   initialColoring,
@@ -37,6 +35,8 @@ import { VariablesContext } from '../util/variablesContext'
 import { normalizeLinkEnds } from '../util/normalizeLinkEnds'
 import { createLogger } from '@/utils/logger'
 import { Graph } from '@/components/Graph'
+import { useEmacs } from '@/context/emacs'
+import { EmacsVariables, OrgRoamGraphReponse, OrgRoamLink, OrgRoamNode, Tags } from '@/emacs/api'
 
 const log = createLogger('page')
 
@@ -44,15 +44,6 @@ export type NodeById = { [nodeId: string]: OrgRoamNode | undefined }
 export type LinksByNodeId = { [nodeId: string]: OrgRoamLink[] | undefined }
 export type NodesByFile = { [file: string]: OrgRoamNode[] | undefined }
 export type NodeByCite = { [key: string]: OrgRoamNode | undefined }
-export interface EmacsVariables {
-  roamDir?: string
-  dailyDir?: string
-  katexMacros?: { [key: string]: string }
-  attachDir?: string
-  useInheritance?: boolean
-  subDirs: string[]
-}
-export type Tags = string[]
 export type Scope = {
   nodeIds: string[]
   excludedNodeIds: string[]
@@ -126,7 +117,6 @@ export function GraphPage() {
     const oldNodeById = nodeByIdRef.current
     tagsRef.current = orgRoamGraphData.tags ?? []
     const importNodes = orgRoamGraphData.nodes ?? []
-    log.debug("Imported nodes", importNodes)
     const importLinks = orgRoamGraphData.links ?? []
     const nodesByFile = importNodes.reduce<NodesByFile>((acc, node) => {
       return {
@@ -320,12 +310,9 @@ export function GraphPage() {
     currentGraphDataRef.current = graphData
   }, [graphData])
 
-  // const { setEmacsTheme } = useContext(ThemeContext)
-
   const scopeRef = useRef<Scope>({ nodeIds: [], excludedNodeIds: [] })
   const behaviorRef = useRef(initialBehavior)
   behaviorRef.current = behavior
-  const WebSocketRef = useRef<ReconnectingWebSocket | null>(null)
 
   scopeRef.current = scope
   const followBehavior = (
@@ -397,59 +384,56 @@ export function GraphPage() {
     }, 50)
   }
 
+  const emacsClient = useEmacs()
+
   useEffect(() => {
-    // initialize websocket
-    WebSocketRef.current = new ReconnectingWebSocket('ws://localhost:35903')
-    WebSocketRef.current.addEventListener('open', () => {
-      log.info('Connection with Emacs established')
-    })
-    WebSocketRef.current.addEventListener('message', (event: any) => {
-      log.debug(event)
-      const bh = behaviorRef.current
-      const message = JSON.parse(event.data)
-      switch (message.type) {
-        case 'graphdata':
-          return updateGraphData(message.data)
-        case 'variables':
-          setEmacsVariables(message.data)
-          log.debug(message)
-          return
-        // TODO: Remove when create new way to manage colors
-        // case 'theme':
-        //   return setEmacsTheme(['custom', message.data])
-        case 'command':
-          switch (message.data.commandName) {
-            case 'local':
-              const speed = behavior.zoomSpeed
-              const padding = behavior.zoomPadding
-              followBehavior('local', message.data.id, speed, padding)
-              setEmacsNodeId(message.data.id)
-              break
-            case 'zoom': {
-              const speed = message?.data?.speed || bh.zoomSpeed
-              const padding = message?.data?.padding || bh.zoomPadding
-              followBehavior('zoom', message.data.id, speed, padding)
-              setEmacsNodeId(message.data.id)
-              break
-            }
-            case 'follow': {
-              followBehavior(bh.follow, message.data.id, bh.zoomSpeed, bh.zoomPadding)
-              setEmacsNodeId(message.data.id)
-              break
-            }
-            case 'change-local-graph': {
-              const node = nodeByIdRef.current[message.data.id as string]
-              if (!node) break
-              log.debug(message)
-              handleLocal(node, message.data.manipulation)
-              break
-            }
-            default:
-              return log.error('unknown message type', message.type)
-          }
-      }
-    })
+    // Unsubscribe on unmount, or listeners accumulate across remounts.
+    const unsubscribers = [
+      emacsClient.subscribeToChannel('graph/update', (data) => { updateGraphData(data) }),
+      emacsClient.subscribeToChannel('variables/update', (data) => { setEmacsVariables(data) }),
+      // TODO: It's possible that below subscriber should be depended on 'scope'
+      emacsClient.subscribeToChannel('node/changeLocalGraph', (data) => {
+        const node = nodeByIdRef.current[data.id as string]
+        if (!node) return
+        handleLocal(node, data.manipulation)
+      }),
+    ]
+    return () => { unsubscribers.forEach((unsubscribe) => unsubscribe()) }
   }, [])
+
+  // TODO: Verify why it use behaviour instead of behaviorRef, also are these variables changes?
+  // Maybe I don't need deps in effect and I can put it in one above (as originally)
+  useEffect(() => {
+    // returns unsubscribe function
+    return emacsClient.subscribeToChannel('node/local', (data) => {
+      followBehavior('local', data.id, behavior.zoomSpeed, behavior.zoomPadding)
+      setEmacsNodeId(data.id)
+    })
+  }, [behavior])
+
+  useEffect(() => {
+    // Unsubscribe on unmount, or listeners accumulate across remounts.
+    const unsubscribers = [
+      emacsClient.subscribeToChannel('node/zoom', (data) => {
+        log.debug('node/zoom', data)
+        followBehavior(
+          'zoom',
+          data.id,
+          data?.speed || behaviorRef.current.zoomSpeed,
+          data?.padding || behaviorRef.current.zoomPadding)
+        setEmacsNodeId(data.id)
+      }),
+      emacsClient.subscribeToChannel('node/follow', (data) => {
+        followBehavior(
+          behaviorRef.current.follow,
+          data.id,
+          behaviorRef.current.zoomSpeed,
+          behaviorRef.current.zoomPadding)
+        setEmacsNodeId(data.id)
+      }),
+    ]
+    return () => { unsubscribers.forEach((unsubscribe) => unsubscribe()) }
+  }, [behaviorRef.current])
 
   useEffect(() => {
     const fg = graphRef.current
@@ -569,7 +553,6 @@ export function GraphPage() {
               //ref={graphRef}
               nodeById={nodeByIdRef.current!}
               linksByNodeId={linksByNodeIdRef.current!}
-              webSocket={WebSocketRef.current}
               variables={emacsVariables}
               {...{
                 physics,
@@ -683,7 +666,6 @@ export function GraphPage() {
               coordinates={contextPos}
               handleLocal={handleLocal}
               menuClose={contextMenu.onClose.bind(contextMenu)}
-              webSocket={WebSocketRef.current}
               setPreviewNode={setPreviewNode}
               setFilter={setFilter}
               filter={filter}

@@ -21,7 +21,7 @@ export interface BacklinksProps {
 }
 
 import { PreviewLink } from './Link'
-import { OrgRoamNode } from '../../api'
+import { OrgRoamNode } from '@/emacs/api'
 import { Section } from './Section'
 import { normalizeLinkEnds } from '../../util/normalizeLinkEnds'
 

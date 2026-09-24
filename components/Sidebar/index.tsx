@@ -19,7 +19,7 @@ import {
 import { BiDotsVerticalRounded, BiFile, BiNetworkChart } from 'react-icons/bi'
 
 import { GraphData, NodeObject, LinkObject } from 'force-graph'
-import { OrgRoamNode } from '../../api'
+import { OrgRoamNode } from '@/emacs/api'
 import { useTheme } from '@/context/theme'
 import { LinksByNodeId, NodeByCite, NodeById, Scope } from '../../pages/index'
 import { Resizable } from 're-resizable'

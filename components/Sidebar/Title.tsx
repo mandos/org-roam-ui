@@ -1,7 +1,7 @@
 import { Flex, Heading } from '@chakra-ui/react'
 import React from 'react'
 
-import { OrgRoamNode } from '../../api'
+import { OrgRoamNode } from '@/emacs/api'
 export interface TitleProps {
   previewNode: OrgRoamNode | undefined
 }

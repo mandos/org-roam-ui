@@ -1,5 +1,5 @@
+import { EmacsVariables } from '@/emacs/api'
 import { createContext } from 'react'
-import { EmacsVariables } from '../pages'
 
 type Theme = [name: string, themeObject: { [color: string]: string }]
 

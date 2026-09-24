@@ -1,4 +1,4 @@
-import { OrgRoamLink } from '../api'
+import { OrgRoamLink } from '@/emacs/api'
 import { LinkObject } from 'force-graph'
 
 export function normalizeLinkEnds(link: OrgRoamLink | LinkObject): [string, string] {
