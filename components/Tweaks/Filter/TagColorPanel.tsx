@@ -77,6 +77,7 @@ export const TagColorPanel = (props: TagColorPanelProps) => {
         hideToggleButton
         itemRenderer={(selected) => selected.label}
       />
+      {/* @ts-ignore TODO Remove after updating Chakra to 2+ */}
       <VStack
         spacing={2}
         justifyContent="flex-start"
@@ -90,8 +91,13 @@ export const TagColorPanel = (props: TagColorPanelProps) => {
               <Box width="100%">
                 <Text>{tag}</Text>
               </Box>
-              <Menu isLazy placement="right">
-                <MenuButton as={Button} colorScheme="" color="black">
+              <Menu
+                isLazy placement="right">
+                {/* @ts-ignore TODO Remove after updating Chakra to 2+ */}
+                <MenuButton
+                  as={Button}
+                  colorScheme=""
+                  color="black">
                   {<Box bgColor={tagColors[tag]} borderRadius="sm" height={6} width={6}></Box>}
                 </MenuButton>
                 <Portal>

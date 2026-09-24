@@ -51,6 +51,7 @@ export const Backlinks = (props: BacklinksProps) => {
   return (
     <Box className="backlinks" borderRadius="sm" mt={6} p={4} bg="white" mb={10}>
       <p style={{ fontSize: 16, fontWeight: 600 }}>{`Linked references (${backLinks.length})`}</p>
+      {/* @ts-ignore  TODO: Remove after updating Chakra to 2+ */}
       <VStack
         py={2}
         spacing={3}

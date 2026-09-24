@@ -39,7 +39,10 @@ export const ColorMenu = (props: ColorMenuProps) => {
     [],
   )
   return (
-    <Flex alignItems="center" justifyContent="space-between">
+    // @ts-ignore  TODO: Remove after updating Chakra to 2+
+    <Flex
+      alignItems="center"
+      justifyContent="space-between">
       <Text>{label}</Text>
       <Popover isLazy placement="right">
         <PopoverTrigger>

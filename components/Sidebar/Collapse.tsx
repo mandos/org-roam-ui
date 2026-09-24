@@ -61,7 +61,7 @@ export type ICollapse = CollapseProps
 
 export interface CollapseProps
   extends WithTransitionConfig<HTMLMotionProps<'div'>>,
-    CollapseOptions {}
+  CollapseOptions {}
 
 export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>((props, ref) => {
   const {
@@ -92,12 +92,11 @@ export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>((props, 
    * If you specify a starting size, the collapsed needs to be mounted
    * for the size to take effect.
    */
+  const hasStartingSize = parseFloat(startingSize.toString()) > 0
   warn({
-    condition: Boolean(startingSize > 0 && unmountOnExit),
+    condition: Boolean(hasStartingSize && unmountOnExit),
     message: `startingSize and unmountOnExit are mutually exclusive. You can't use them together`,
   })
-
-  const hasStartingSize = parseFloat(startingSize.toString()) > 0
 
   const custom = {
     startingSize,
@@ -110,8 +109,8 @@ export const Collapse = React.forwardRef<HTMLDivElement, CollapseProps>((props, 
       exit: unmountOnExit
         ? undefined
         : {
-            display: hasStartingSize ? 'block' : 'none',
-          },
+          display: hasStartingSize ? 'block' : 'none',
+        },
     }),
   }
 

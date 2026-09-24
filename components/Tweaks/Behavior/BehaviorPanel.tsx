@@ -38,6 +38,7 @@ export const BehaviorPanel = (props: BehaviorPanelProps) => {
       <Flex alignItems="center" justifyContent="space-between">
         <Text>Preview node</Text>
         <Menu isLazy placement="right">
+          {/* @ts-ignore  TODO: Remove after updating Chakra to 2+ */}
           <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="" color="black">
             <Text>
               {mouse.preview ? mouse.preview[0]!.toUpperCase() + mouse.preview!.slice(1) : 'Never'}
