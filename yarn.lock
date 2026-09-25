@@ -6552,12 +6552,12 @@ three-render-objects@^1.26:
     kapsule "^1.13"
     polished "4"
 
-three-spritetext@^1.6.3:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/three-spritetext/-/three-spritetext-1.10.0.tgz#479717cbf7ea64ee2e5879952bb5e15f608bf13d"
-  integrity sha512-t08iP1FCU1lQh8T5MmCpdijKgas8GDHJE0LqMGBuVu3xqMMpFnEZhTlih7FlxLPQizHIGoumUSpfOlY1GO/Tgg==
+three-spritetext@~1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/three-spritetext/-/three-spritetext-1.7.1.tgz#a75546d43d6600dba12f6e27e4dd63c796efd32b"
+  integrity sha512-iht/VGqEsDHgRIctA177wOW6x4IFiINihUxOen1U3lNVTrBdlJLCoA+DcnjMqi25vHu2P99asNGwtvG+iq3s2Q==
 
-"three@>=0.118 <1":
+three@0.137.5, "three@>=0.118 <1":
   version "0.137.5"
   resolved "https://registry.yarnpkg.com/three/-/three-0.137.5.tgz#a1e34bedd0412f2d8797112973dfadac78022ce6"
   integrity sha512-rTyr+HDFxjnN8+N/guZjDgfVxgHptZQpf6xfL/Mo7a5JYIFwK6tAq3bzxYYB4Ae0RosDZlDuP+X5aXDXz+XnHQ==
@@ -6772,10 +6772,10 @@ type-fest@^0.7.1:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.7.1.tgz#8dda65feaf03ed78f0a3f9678f1869147f7c5c48"
   integrity sha512-Ne2YiiGN8bmrmJJEuTWTLJR32nh/JdL1+PSicowtNb0WFpn59GK8/lfD61bVtzguz7b3PBt74nxpv/Pw5po5Rg==
 
-typescript@4.3.5:
-  version "4.3.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
-  integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
+typescript@^5.0:
+  version "5.9.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
+  integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
 
 unbox-primitive@^1.0.1:
   version "1.0.1"

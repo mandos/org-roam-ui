@@ -8,7 +8,7 @@
     "export": "next export",
     "start": "next start",
     "prettier": "prettier -w .",
-    "lint": "tsc --noEmit && next lint && eslint \"./**/*.{ts,tsx,js}\" \"./**/.*.{ts,tsx,js}\" --fix",
+    "lint": "tsc --noEmit && next lint && eslint \"./**/*.{ts,tsx,js}\" \"./**/.*.{ts,tsx,js}\"",
     "test:run": "vitest"
   },
   "dependencies": {
@@ -60,7 +60,8 @@
     "slate": "^0.66.5",
     "slate-react": "^0.66.7",
     "styled-jsx": "^4.0.1",
-    "three-spritetext": "^1.6.3",
+    "three-spritetext": "~1.7.1",
+    "three": "0.137.5",
     "through": "^2.3.8",
     "to-vfile": "^6.1.0",
     "unified": "^9.2.2",
@@ -86,7 +87,7 @@
     "next-compose-plugins": "^2.2.1",
     "next-transpile-modules": "^8.0.0",
     "prettier": "^2.5.1",
-    "typescript": "4.3.5",
+    "typescript": "^5.0",
     "vitest": "^4.1.10"
   }
 }
